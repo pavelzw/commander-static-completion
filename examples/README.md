@@ -79,23 +79,39 @@ Do not assume that directory is loaded by Bash itself.
 
 ## Zsh installation
 
+Generate a completion file named after the executable, with a leading underscore:
+
 ```zsh
-mkdir -p "$HOME/.local/share/mycli"
-mycli completions zsh > "$HOME/.local/share/mycli/completions.zsh"
+mkdir -p "$HOME/.local/share/zsh/site-functions"
+mycli completions zsh > "$HOME/.local/share/zsh/site-functions/_mycli"
 ```
 
-In `~/.zshrc`, source it **after** your existing completion-system initialization:
+In `~/.zshrc`, add the directory **before** completion-system initialization:
 
 ```zsh
+fpath=("$HOME/.local/share/zsh/site-functions" $fpath)
 autoload -Uz compinit
 compinit
-source "$HOME/.local/share/mycli/completions.zsh"
 ```
 
-If a shell framework already calls `compinit`, add just the final `source` line
-after the framework is loaded. Open a new shell, or source the file in a session
-where `compinit` has already run. These generated scripts currently require
-explicit sourcing; installing them as `_mycli` in `fpath` is not supported yet.
+If your shell framework already calls `compinit`, put the `fpath` line before
+loading the framework and keep its existing initialization. Open a new shell;
+Zsh discovers the `#compdef mycli` header and autoloads the file on the first Tab.
+For an executable override such as `mycli-preview`, generate with
+`--executable mycli-preview` and save it as `_mycli-preview`.
+
+The same generated output can still be sourced after `compinit`:
+
+```zsh
+source "$HOME/.local/share/zsh/site-functions/_mycli"
+```
+
+Regenerate the file when command definitions change, then start a new shell
+(or source the updated file). If a cached completion setup does not discover a
+new or renamed registration, rebuild the completion dump used by your setup
+(usually `~/.zcompdump`) and restart the shell. Zsh's
+[completion-system documentation](https://zsh.sourceforge.io/Doc/Release/Completion-System.html)
+explains discovery and dump caching.
 
 ## Fish installation
 
@@ -137,11 +153,11 @@ the build supplies those definitions explicitly.
 For system packages, use the package manager's configured prefix and completion
 locations:
 
-| Shell                     | Distribution location                                                                                                                                        |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Bash with bash-completion | Usually `$prefix/share/bash-completion/completions/mycli`; use `pkg-config --variable=completionsdir bash-completion` when available.                        |
-| Fish                      | Usually `$prefix/share/fish/vendor_completions.d/mycli.fish`; use `pkg-config --variable=completionsdir fish` when available.                                |
-| Zsh                       | Ship a sourced script and document loading it after `compinit`; this generator does not yet support the usual `site-functions/_mycli` autoload installation. |
+| Shell                     | Distribution location                                                                                                                 |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Bash with bash-completion | Usually `$prefix/share/bash-completion/completions/mycli`; use `pkg-config --variable=completionsdir bash-completion` when available. |
+| Fish                      | Usually `$prefix/share/fish/vendor_completions.d/mycli.fish`; use `pkg-config --variable=completionsdir fish` when available.         |
+| Zsh                       | Install `_mycli` in a Zsh `site-functions` directory already on `fpath`, or document adding your directory before `compinit`.         |
 
 Consult the [bash-completion](https://github.com/scop/bash-completion#installation)
 and [Fish completion documentation](https://fishshell.com/docs/current/completions.html)

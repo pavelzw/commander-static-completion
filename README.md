@@ -72,14 +72,21 @@ Source the generated file from your Bash startup configuration to persist it.
 Package authors can ship this file alongside the CLI. Regenerate it whenever
 the command definition changes.
 
-For Zsh, generate with `shell: 'zsh'` and source the result after initializing
-the completion system in `.zshrc`:
+For Zsh, generate with `shell: 'zsh'` and save the output as `_mycli` in a
+completion directory. Add that directory to `fpath` **before** `compinit` in
+`.zshrc`:
 
 ```zsh
+fpath=("$HOME/.local/share/zsh/site-functions" $fpath)
 autoload -Uz compinit
 compinit
-source /path/to/mycli.zsh
 ```
+
+Zsh discovers the file's `#compdef` header and loads it on the first completion.
+Use `_<executable>` as the filename when overriding the executable name. The same
+output also supports `source /path/to/mycli.zsh` after `compinit`, if preferred.
+See the [installation example](examples/README.md#zsh-installation) for commands
+and existing shell-framework setup.
 
 For Fish, generate with `shell: 'fish'` and save the output as
 `~/.config/fish/completions/mycli.fish` (or the `completions` directory beneath

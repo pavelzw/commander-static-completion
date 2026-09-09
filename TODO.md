@@ -69,7 +69,7 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
 - [ ] Test multiple generated CLIs loaded together, sourcing scripts repeatedly,
       existing completion registrations, and common user shell options. Avoid stale
       or duplicate completions after regeneration.
-- [ ] Add Zsh autoload support (`#compdef`/`fpath`) alongside the current sourced
+- [x] Add Zsh autoload support (`#compdef`/`fpath`) alongside the current sourced
       script workflow, with installation tests.
 - [ ] Verify shell state is preserved after completion and command/Node execution
       remains unnecessary in every native integration test.
