@@ -8,12 +8,13 @@ import { join } from 'node:path';
 import { Command, Option, Argument } from 'commander';
 import { completionHint, generateCompletion } from '../dist/index.js';
 
+const bash = process.env.TEST_BASH ?? '/bin/bash';
 const quote = s => "'" + s.replaceAll("'", "'\\''") + "'";
 
 function complete(program, words, { cwd, breaks = ' \t\n"\'@><=;|&(:' } = {}) {
   const script = generateCompletion(program, { shell: 'bash' });
   const fn = script.match(/complete -F (\w+)/)[1];
-  const result = spawnSync('/bin/bash', ['--noprofile', '--norc'], {
+  const result = spawnSync(bash, ['--noprofile', '--norc'], {
     cwd,
     input: `${script}\nmycli() { echo 'CLI WAS INVOKED' >&2; return 99; }\nPATH=/nonexistent\nCOMP_WORDS=(${words.map(quote).join(' ')})\nCOMP_CWORD=${words.length - 1}\nCOMP_WORDBREAKS=${quote(breaks)}\n${fn}\nif ((${ '${#COMPREPLY[@]}' })); then printf '%s\\0' "${ '${COMPREPLY[@]}' }"; fi\n`,
     encoding: 'utf8',
@@ -95,7 +96,7 @@ test('generation is deterministic, syntactically valid, and does not parse', () 
   const a = generateCompletion(program, { shell: 'bash' });
   assert.equal(generateCompletion(program, { shell: 'bash' }), a);
   assert.deepEqual(program.args, []);
-  assert.equal(spawnSync('/bin/bash', ['-n'], { input: a }).status, 0);
+  assert.equal(spawnSync(bash, ['-n'], { input: a }).status, 0);
 });
 
 test('unsupported configurations and invalid inputs produce diagnostics', () => {

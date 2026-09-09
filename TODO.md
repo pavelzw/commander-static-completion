@@ -7,17 +7,18 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
 
 ## 1. Release readiness
 
-- [ ] Add CI for type checking, builds, shell syntax, and behavioral tests on
+- [x] Add CI for type checking, builds, shell syntax, and behavioral tests on
   Linux and macOS. Exercise Commander 14/15, the minimum supported Node version,
   and supported newer Node versions.
-- [ ] Test the documented shell baseline and newer versions: Bash 3.2 and 5.x,
+- [x] Test the documented shell baseline and newer versions: Bash 3.2 and 5.x,
   Zsh 5.9+, and Fish 4+. Provision these explicitly in CI.
-- [ ] Make builds clean `dist/` before compilation so renamed or deleted modules
+- [x] Make builds clean `dist/` before compilation so renamed or deleted modules
   cannot remain in a published package.
-- [ ] Automate the installed-tarball smoke test: ESM import, CommonJS require,
+- [x] Automate the installed-tarball smoke test: ESM import, CommonJS require,
   all three generators, and TypeScript consumption through package exports.
   Confirm declaration/source maps resolve to the packaged TypeScript source.
-- [ ] Add formatting/linting and format the TypeScript source and test harnesses.
+- [x] Add Oxlint for library source, tooling, tests, and examples; fail CI on warnings.
+- [ ] Add a formatter and format the TypeScript source and test harnesses.
 - [ ] Add package repository, homepage, bugs, and discovery metadata; document
   installation and the supported ESM/CommonJS usage.
 - [ ] Establish a release checklist, changelog, versioning policy, and npm

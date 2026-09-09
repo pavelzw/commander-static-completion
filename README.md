@@ -102,22 +102,40 @@ applies its own matching and ordering rules to candidates.
 ```sh
 npm ci
 npm run build
-npm test
-npm run check
+npm run validate
 node examples/generate.js bash > /tmp/mycli.bash
 node examples/generate.js zsh > /tmp/mycli.zsh
 node examples/generate.js fish > /tmp/mycli.fish
 ```
 
 `npm run build` emits JavaScript, declarations, and source maps into `dist/`.
-`npm run check` checks both library source and public API type tests. `npm pack`
-builds automatically. The JavaScript examples and tests use the compiled library.
+The build cleans `dist/` first, so removed modules cannot survive into the package.
+`npm run check` checks library source, tooling, and public API type tests.
+`npm pack` builds automatically. The JavaScript examples and tests use the
+compiled library.
 
-Tests require Bash, Zsh, and Fish on PATH. Set `TEST_ZSH` or `TEST_FISH` to override
-their executable paths. Tests cover generated shell syntax, command context,
+`npm run validate` runs all checks in the same order as CI:
+
+- `npm run lint`: Oxlint over TypeScript, tests, tooling, and examples; warnings fail.
+- `npm run check`: strict TypeScript checks.
+- `npm test`: build and shell behavior tests.
+- `npm run test:package`: build a tarball and install it in a temporary consumer.
+  Check ESM/CommonJS imports, all generators, published types in both module
+  formats, package contents, and source/declaration maps. This also seeds stale
+  build files to verify that packing removes them. It needs npm registry access
+  to install the Commander version under test and cleans up afterward.
+
+Tests use `/bin/bash`, plus Zsh and Fish on PATH. Set `TEST_BASH`, `TEST_ZSH`, or
+`TEST_FISH` to override their executable paths. Tests cover generated shell syntax, command context,
 quoting, choices, and filesystem hints. Scanner tests disable external commands
 and provide a CLI stub that reports any invocation. Fish tests use `complete -C`;
 Zsh also has an interactive ZLE test for actual Tab insertion.
+
+GitHub Actions runs validation on Linux and macOS with Commander 14 and 15,
+Node 22.12.0, Node 24, and current Node. The matrix includes Bash 3.2 and 5.x,
+Zsh 5.9+, an exact Fish 4.0.0 source build, and current Fish 4+ packages. Every
+job checks its shell versions before testing. CI runs on pull requests, pushes
+to `main`, and manual dispatch; it does not publish to npm.
 
 The internal pipeline separates typed Commander extraction from rendering.
 Bash and Zsh share a scanner with shell-specific completion output; Fish has a

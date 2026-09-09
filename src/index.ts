@@ -21,6 +21,7 @@ export function completionHint<T extends Option | Argument>(target: T, hint: Com
 /** Generate a standalone shell script from a fully configured command tree. */
 export function generateCompletion(program: Command, { shell, executable = program.name() }: GenerateOptions): string {
   if (!['bash', 'zsh', 'fish'].includes(shell)) throw new Error(`Unsupported shell: ${shell}. Expected bash, zsh, or fish.`);
+  // oxlint-disable-next-line no-control-regex -- Reject control characters in executable names.
   if (typeof executable !== 'string' || !executable || /[\s\x00-\x1f\x7f]/u.test(executable)) {
     throw new TypeError('Provide a nonempty executable name without whitespace or control characters.');
   }
