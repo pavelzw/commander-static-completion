@@ -85,9 +85,9 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
 - [ ] Carry descriptions through the model and display them in Zsh and Fish.
 - [ ] Decide whether to add richer static hints, such as filename extensions or
       choice descriptions, while preserving Commander `.choices()` by default.
-- [ ] Add a complete runnable CLI example with a `completions <shell>` command.
+- [x] Add a complete runnable CLI example with a `completions <shell>` command.
       Ensure required root options and application hooks do not prevent generation.
-- [ ] Document build-time generation, package-manager installation locations,
+- [x] Document build-time generation, package-manager installation locations,
       executable-name overrides, and regeneration when the command tree changes.
 - [ ] Document static plugin loading and explicit hints for custom parsers.
       Runtime services and arbitrary parser functions cannot be inferred.

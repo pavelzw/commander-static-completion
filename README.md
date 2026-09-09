@@ -8,6 +8,33 @@ Supports **Bash 3.2+**, **Zsh 5.9+**, and **Fish 4+**, with Commander 14/15
 and Node 22.12+. Library source is strict TypeScript; the package exports compiled
 JavaScript and generated TypeScript declarations.
 
+## Installation and runnable example
+
+Before an npm release, build a tarball from this checkout with `npm ci` and
+`npm pack`. In your CLI project, install that tarball alongside Commander:
+
+```sh
+npm install commander /absolute/path/to/commander-static-completion-0.1.0.tgz
+```
+
+Use `import { generateCompletion } from "commander-static-completion"` in ESM
+or `const { generateCompletion } = require("commander-static-completion")` in
+CommonJS on the supported Node versions. TypeScript declarations are included.
+
+The [runnable example and installation guide](https://github.com/pavelzw/commander-static-completion/blob/main/examples/README.md)
+shows a `mycli completions <shell>` command, per-user installation in all three
+shells, and build-time/package-manager distribution. Try it from this checkout:
+
+```sh
+npm ci
+npm run build
+node examples/cli.js completions bash > /tmp/mycli.bash
+node examples/cli.js --token demo deploy --target staging
+```
+
+The completion route bypasses the example's required token and application hook;
+normal application commands still enforce them.
+
 ## Usage
 
 ```js
@@ -143,7 +170,9 @@ and automatic import sorting is disabled.
   Check ESM/CommonJS imports, all generators, published types in both module
   formats, package contents, and source/declaration maps. This also seeds stale
   build files to verify that packing removes them. It needs npm registry access
-  to install the Commander version under test and cleans up afterward.
+  to install the Commander version under test and cleans up afterward. It also
+  runs the example against the installed tarball and verifies generated-script
+  loading in Bash, Zsh, and Fish.
 
 Tests use `/bin/bash`, plus Zsh and Fish on PATH. Set `TEST_BASH`, `TEST_ZSH`, or
 `TEST_FISH` to override their executable paths. Tests cover generated shell syntax, command context,

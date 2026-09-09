@@ -20,7 +20,7 @@
     "build": "tsx scripts/build.ts",
     "test": "npm run build && node --test test/*.test.js",
     "check": "tsc --noEmit",
-    "example": "npm run build --silent && node examples/generate.js",
+    "example": "npm run build --silent && node examples/cli.js",
     "prepack": "npm run build",
     "lint": "oxlint --deny-warnings src scripts test examples type-tests",
     "test:package": "tsx scripts/validate-package.ts",

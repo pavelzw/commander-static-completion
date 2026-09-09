@@ -13,6 +13,8 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { validateExample } from "./validate-example.js";
+
 interface PackResult {
   filename: string;
   files: { path: string }[];
@@ -87,6 +89,9 @@ try {
   );
   cpSync(join(root, "test/fixtures/package"), consumer, { recursive: true });
 
+  cpSync(join(root, "examples"), join(consumer, "examples"), { recursive: true });
+  validateExample(consumer);
+
   const installed = join(consumer, "node_modules/commander-static-completion");
   assert.ok(existsSync(join(installed, "dist/index.js")));
   for (const file of files) {
@@ -144,7 +149,7 @@ try {
     },
   );
   console.log(
-    `Package validation passed with Commander ${commander.version}: clean build, file list, ESM, CommonJS, types, and source maps.`,
+    `Package validation passed with Commander ${commander.version}: clean build, file list, ESM, CommonJS, types, source maps, and runnable CLI installation.`,
   );
 } finally {
   rmSync(temporary, { recursive: true, force: true });
