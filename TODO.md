@@ -52,8 +52,8 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
 
 ## 3. Shell behavior and regression coverage
 
-- [ ] Add native Bash Readline insertion tests; current Bash tests call generated
-  functions directly. Verify spaces, quoting, directory suffixes, and `nospace` behavior.
+- [x] Add native Bash Readline insertion tests alongside direct function tests.
+  Verify spaces, quoting, directory suffixes, and trailing-space behavior.
 - [x] Consolidate a shared behavior matrix across shells so new cases exercise
   Bash, Zsh, and Fish consistently.
 - [ ] Exercise cursor-in-the-middle completion, existing suffixes, unfinished

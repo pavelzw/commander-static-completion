@@ -141,7 +141,9 @@ Tests use `/bin/bash`, plus Zsh and Fish on PATH. Set `TEST_BASH`, `TEST_ZSH`, o
 `TEST_FISH` to override their executable paths. Tests cover generated shell syntax, command context,
 quoting, choices, and filesystem hints. Scanner tests disable external commands
 and provide a CLI stub that reports any invocation. Fish tests use `complete -C`;
-Zsh also has an interactive ZLE test for actual Tab insertion. A shared behavior
+Bash Readline and Zsh ZLE tests use pseudo-terminals to verify actual Tab
+insertion, including quoting and attached file values. Bash also covers directory
+suffixes, unfinished quotes, escaped spaces, and completion before later arguments. A shared behavior
 matrix runs in all three shells. A second matrix instruments fresh Commander
 definitions with probe value parsers and compares the declaration receiving the
 next token with the shell's suggestions. These probes test value ownership and

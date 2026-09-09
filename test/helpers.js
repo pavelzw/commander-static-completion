@@ -10,7 +10,7 @@ const fishQuote = s => "'" + s.replaceAll('\\', '\\\\').replaceAll("'", "\\'") +
 
 function bashComplete(program, words, { cwd, breaks = ' \t\n"\'@><=;|&(:' } = {}) {
   const script = generateCompletion(program, { shell: 'bash' });
-  const fn = script.match(/complete -F (\w+)/)[1];
+  const fn = script.match(/complete .*?-F (\w+)/)[1];
   const result = spawnSync(bash, ['--noprofile', '--norc'], {
     cwd,
     input: `${script}\ncsc-test-cli() { echo 'CLI WAS INVOKED' >&2; return 99; }\nPATH=/nonexistent\nCOMP_WORDS=(${words.map(quote).join(' ')})\nCOMP_CWORD=${words.length - 1}\nCOMP_WORDBREAKS=${quote(breaks)}\n${fn}\nif ((${ '${#COMPREPLY[@]}' })); then printf '%s\\0' "${ '${COMPREPLY[@]}' }"; fi\n`,

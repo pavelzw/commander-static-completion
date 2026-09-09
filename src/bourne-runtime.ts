@@ -57,7 +57,7 @@ ${shell === 'zsh' ? zshInput : ''}
     lead=\${current%%=*}=
     current=\${current#*=}
     # Readline replaces only the part after '=' when it is a word break.
-    if [[ $COMP_WORDBREAKS == *=* && $raw_current != --*=* ]]; then lead=; fi
+    if [[ $COMP_WORDBREAKS == *=* && ( -n $COMP_LINE || $raw_current != --*=* ) ]]; then lead=; fi
   elif (( ! end )) && [[ $current == -?* && $current != --* ]]; then
     rest=\${current:1}; attached=-
     while [[ -n $rest ]]; do
@@ -69,6 +69,7 @@ ${shell === 'zsh' ? zshInput : ''}
     done
   fi
 
+${shell === 'bash' ? bashUnquote : ''}
   if ((value >= 0)); then
     __PREFIX___values
   else
@@ -89,15 +90,61 @@ ${shell === 'bash' ? bashFiles : zshOutput}
 `;
 }
 
-const bashFiles = `  if [[ $kind == file || $kind == directory ]]; then
+const bashFiles = String.raw`  if [[ $kind == file || $kind == directory ]]; then
     local action=file
     [[ $kind == directory ]] && action=directory
     while IFS= read -r candidate; do
       COMPREPLY+=("$lead$candidate")
     done < <(compgen -A "$action" -- "$current")
     compopt -o filenames 2>/dev/null || :
+  elif [[ -n $COMP_LINE ]] && compopt -o noquote +o filenames 2>/dev/null; then
+    # Quote static words ourselves: newer Readline can preserve expansion syntax
+    # even with filename quoting enabled. Bash 3.2 uses registration-time quoting.
+    for ((j=0; j<__DOLLAR__{#COMPREPLY[@]}; j++)); do
+      candidate=__DOLLAR__{COMPREPLY[j]}
+      if [[ $quote_char == "'" ]]; then
+        candidate=__DOLLAR__{candidate//\'/\'\\\'\'}
+        COMPREPLY[j]="$candidate'"
+      elif [[ $quote_char == '"' ]]; then
+        local k quoted=
+        for ((k=0; k<__DOLLAR__{#candidate}; k++)); do
+          char=__DOLLAR__{candidate:k:1}
+          if [[ $char == '$' || $char == $'\x60' || $char == '"' || $char == \\ ]]; then quoted+='\'; fi
+          quoted+=$char
+        done
+        COMPREPLY[j]=$quoted'"'
+      else
+        printf -v 'COMPREPLY[j]' '%q' "$candidate"
+      fi
+    done
   fi
-`;
+`.replaceAll('__DOLLAR__', '$');
+
+// COMP_WORDS retains quoting characters. Decode syntax without evaluating any
+// parameter expansion, command substitution, or other user-supplied shell code.
+const bashUnquote = String.raw`  if [[ -n $COMP_LINE ]]; then
+    local decoded= char quote_char= escaped=0
+    for ((j=0; j<__DOLLAR__{#current}; j++)); do
+      char=__DOLLAR__{current:j:1}
+      if ((escaped)); then
+        if [[ $quote_char == '"' && $char != '$' && $char != $'\x60' && $char != '"' && $char != \\ && $char != $'\n' ]]; then
+          decoded+='\'
+        fi
+        decoded+=$char; escaped=0
+      elif [[ $char == \\ && $quote_char != "'" ]]; then
+        escaped=1
+      elif [[ -z $quote_char && ( $char == "'" || $char == '"' ) ]]; then
+        quote_char=$char
+      elif [[ -n $quote_char && $char == "$quote_char" ]]; then
+        quote_char=
+      else
+        decoded+=$char
+      fi
+    done
+    ((escaped)) && decoded+='\'
+    current=$decoded
+  fi
+`.replaceAll('__DOLLAR__', '$');
 
 const zshInput = `  emulate -L ksh
   local -a COMP_WORDS=("\${words[@]}") COMPREPLY
