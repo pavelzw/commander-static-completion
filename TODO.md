@@ -26,16 +26,16 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
 
 ## 2. Commander semantics
 
-- [ ] Add focused extraction tests, including hidden entries, renamed/disabled
+- [x] Add focused extraction tests, including hidden entries, renamed/disabled
       help and version flags, custom help configuration, and option shadowing.
 - [x] Compare scanner behavior with Commander on a shared set of token sequences:
       required/optional values, negative numbers, short clusters, empty assignments,
       variadic values, repeated flags, and `--`.
-- [ ] Verify parent-option handling before and after subcommands, including
+- [x] Verify parent-option handling before and after subcommands, including
       overlapping short/long aliases and hidden options typed explicitly.
 - [x] Complete nested help using Commander's actual syntax (`mycli remote help add`)
       and stop suggesting additional targets after `mycli help remote`.
-- [ ] Expand coverage of explicit/custom help commands and help configuration.
+- [x] Expand coverage of explicit/custom help commands and help configuration.
 - [x] Support `enablePositionalOptions()` with the correct option scope.
 - [x] Support `passThroughOptions()` and stop suggesting owned options at the
       correct boundary.
@@ -43,11 +43,11 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
 - [x] Support `combineFlagAndOptionalValue(false)`.
 - [ ] Design an explicit way to supply definitions for executable subcommands;
       do not launch those executables during completion or scrape their help text.
-- [ ] Audit all Commander parsing settings that affect completion. For settings
+- [x] Audit all Commander parsing settings that affect completion. For settings
       we cannot model, provide a specific diagnostic instead of silently guessing.
 - [ ] Decide how conflicts and repeatability should affect suggestions. Keep
       implied/default values distinct from tokens actually present on the command line.
-- [ ] Define how custom help overrides affect extraction, and minimize reliance
+- [x] Define how custom help overrides affect extraction, and minimize reliance
       on Commander private fields. Cover remaining private access in compatibility tests.
 
 ## 3. Shell behavior and regression coverage

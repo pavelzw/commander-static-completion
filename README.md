@@ -155,18 +155,23 @@ the end can consume the next word (`-vo auto`). Required attached values
 (`-orproduction`) and long assignments (`--optional=auto`) still work. Each
 option retains its owning command's setting when inherited by a subcommand.
 
-The generators currently reject executable subcommands.
+The generators currently reject executable subcommands and legacy `*` fallback
+commands. Use `{ isDefault: true }` for default dispatch.
 Supply ordinary in-process subcommand definitions for generation instead.
 These checks use a small isolated Commander compatibility adapter.
 
 Implicit `help` suggests one immediate subcommand, including aliases. Use
 `mycli remote help add` for a nested command; Commander does not interpret
 `mycli help remote add` as a nested help path. Custom help overrides can affect
-visible suggestions. Custom argument
-parsers, option conflicts/implied values, and runtime plugin discovery are not
+visible suggestions. The help visibility callbacks must return registered
+commands/options or Commander's built-in help entries; presentation-only
+invented definitions produce a diagnostic. See the
+[Commander compatibility audit](docs/commander-compatibility.md) for supported
+settings, help behavior, and the private adapter.
+
+Custom argument parsers, option conflicts/implied values, and runtime plugin discovery are not
 interpreted. The scanner offers completion on incomplete input and is not a
-replacement for Commander validation. Descriptions are not yet displayed beside
-suggestions. Filenames containing newlines and unusual custom Bash word-break
+replacement for Commander validation. Filenames containing newlines and unusual custom Bash word-break
 configurations are not covered. Fish rejects static completion strings containing
 tabs or newlines because its candidate format uses those as delimiters. Fish
 applies its own matching and ordering rules to candidates.

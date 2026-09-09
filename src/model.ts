@@ -30,11 +30,18 @@ interface CommanderInternals {
   _defaultCommandName?: string | null;
   _combineFlagAndOptionalValue?: boolean;
   _executableHandler?: boolean;
+  _getHelpCommand(): Command | null;
+  _getHelpOption(): Option | null;
 }
 
 // Private Commander access is confined to this compatibility adapter.
 export function checkCompatibility(command: Command) {
   const internal = command as Command & CommanderInternals;
+  if (command.commands.some((child) => child.name() === "*" || child.aliases().includes("*"))) {
+    throw new Error(
+      "Legacy wildcard subcommands are unsupported; use { isDefault: true } with an ordinary command name.",
+    );
+  }
   if (internal._executableHandler) {
     throw new Error(`Supply an in-process definition for executable subcommand ${command.name()}.`);
   }
@@ -67,7 +74,27 @@ export function extract(program: Command): ModelCommand[] {
     const hasDigit =
       ancestorDigit || command.options.some((option) => /^-\d$/u.test(option.short ?? ""));
     const help = command.createHelp();
+    const helpCommand = internal._getHelpCommand();
+    const helpOption = internal._getHelpOption();
     const visibleOptions = help.visibleOptions(command);
+    const optionFlags = (option: Option): string[] =>
+      [option.short, option.long].filter((flag): flag is string => flag !== undefined);
+    const registeredFlags = new Set(command.options.flatMap(optionFlags));
+    for (const option of visibleOptions) {
+      if (command.options.includes(option) || option === helpOption) continue;
+      // Commander clones the built-in help option when a registered flag shadows
+      // one of its aliases. Those remaining help flags are still presentation-only.
+      const flags = optionFlags(option);
+      if (
+        !helpOption ||
+        !flags.length ||
+        !flags.every((flag) => optionFlags(helpOption).includes(flag) && !registeredFlags.has(flag))
+      ) {
+        throw new Error(
+          `configureHelp().visibleOptions() returned an unregistered option ${option.flags} for ${command.name()}. Supply parser definitions with addOption().`,
+        );
+      }
+    }
     // Keep hidden options in the parser, but never suggest them.
     const local = [...new Set([...command.options, ...visibleOptions])];
     const localOptions: ModelOption[] = local.map((option) => ({
@@ -76,9 +103,16 @@ export function extract(program: Command): ModelCommand[] {
       description: description(option.description),
       inherited: command.options.includes(option),
       combineOptional: internal._combineFlagAndOptionalValue !== false,
-      mode: option.required ? "required" : option.optional ? "optional" : "boolean",
-      variadic: option.variadic,
-      value: valueSpec(option),
+      // Built-in help is detected after option parsing; it never consumes a value.
+      mode: command.options.includes(option)
+        ? option.required
+          ? "required"
+          : option.optional
+            ? "optional"
+            : "boolean"
+        : "boolean",
+      variadic: command.options.includes(option) && option.variadic,
+      value: command.options.includes(option) ? valueSpec(option) : { kind: "none" },
     }));
     // Commander parses ancestor options before delegating to a subcommand.
     // Keep that priority when flags overlap; positional mode ends only the
@@ -109,9 +143,23 @@ export function extract(program: Command): ModelCommand[] {
     };
     nodes.push(node);
     const visibleCommands = help.visibleCommands(command);
-    for (const child of new Set([...command.commands, ...visibleCommands])) {
-      // Help's implicit placeholder must not recursively synthesize help commands.
-      const synthetic = !command.commands.includes(child);
+    for (const child of visibleCommands) {
+      if (!command.commands.includes(child) && child !== helpCommand) {
+        throw new Error(
+          `configureHelp().visibleCommands() returned an unregistered command ${child.name()} for ${command.name()}. Supply parser definitions with addCommand().`,
+        );
+      }
+    }
+    // Registered commands (including aliases) win over the special help route.
+    const implicitHelp =
+      helpCommand &&
+      !command.commands.some((child) =>
+        [child.name(), ...child.aliases()].includes(helpCommand.name()),
+      )
+        ? helpCommand
+        : null;
+    for (const child of new Set([...command.commands, ...(implicitHelp ? [implicitHelp] : [])])) {
+      const synthetic = child === implicitHelp;
       let childNode: ModelCommand;
       if (synthetic) {
         childNode = {
@@ -148,7 +196,8 @@ export function extract(program: Command): ModelCommand[] {
         node.defaultCommand = childNode.id;
       node.children.push({
         id: childNode.id,
-        names: [child.name(), ...child.aliases()],
+        // Commander dispatches the implicit help route by name only.
+        names: synthetic ? [child.name()] : [child.name(), ...child.aliases()],
         description: description(child.description()),
         visible: visibleCommands.includes(child),
       });
