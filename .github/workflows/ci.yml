@@ -70,6 +70,8 @@ jobs:
           tar -xf "$RUNNER_TEMP/fish.tar.xz" -C "$RUNNER_TEMP"
           cmake -S "$RUNNER_TEMP/fish-4.0.0" -B "$RUNNER_TEMP/fish-build" -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/fish" \
+            -DRust_RESOLVE_RUSTUP_TOOLCHAINS=OFF \
+            -DRust_COMPILER="$(rustup which rustc)" -DRust_CARGO="$(rustup which cargo)" \
             -DBUILD_TESTING=OFF -DBUILD_DOCS=OFF
           cmake --build "$RUNNER_TEMP/fish-build" --parallel 2
           cmake --install "$RUNNER_TEMP/fish-build"
