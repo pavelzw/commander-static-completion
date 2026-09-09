@@ -48,3 +48,20 @@ export function optionalClusterSnapshotFixture() {
   program.addArgument(new Argument("[target]").choices(["app", "assets"]));
   return program;
 }
+
+// Include parser settings and hint kinds in the full generated-script snapshots.
+export function generatedSnapshotFixture() {
+  const program = fixture();
+  const serve = program
+    .command("serve", { isDefault: true })
+    .alias("s")
+    .enablePositionalOptions()
+    .combineFlagAndOptionalValue(false);
+  serve.addOption(new Option("-o, --output [format]").choices(["json", "text"]));
+  serve.addOption(completionHint(new Option("--directory <path>"), { kind: "directory" }));
+  serve
+    .command("run", { isDefault: true })
+    .passThroughOptions()
+    .addArgument(new Argument("[args...]").choices(["start", "stop"]));
+  return program;
+}

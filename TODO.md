@@ -77,7 +77,7 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
       executable overrides (including Bash), and pseudo-terminal cleanup.
 - [x] Add native interactive screen snapshots for Bash, Zsh, and Fish, with shared
       keystroke inputs, cursor positions, visible suggestions, and explicit local updates.
-- [ ] Add representative generated-output snapshots alongside behavioral tests
+- [x] Add representative generated-output snapshots alongside behavioral tests
       to review output changes and guard deterministic generation in every shell.
 
 ## 4. Completion experience and integration
