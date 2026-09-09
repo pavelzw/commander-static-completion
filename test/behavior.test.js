@@ -17,7 +17,8 @@ const cases = [
   ["consumed attached values", ["deploy", "-vtdev", "e"], ["eu"]],
   ["consumed assignments", ["deploy", "--target=dev", "e"], ["eu"]],
   ["empty assignments", ["deploy", "--target=", "e"], ["eu"]],
-  ["exhausted positionals", ["deploy", "eu", "u"], []],
+  // Fish also matches "u" in the version description; neither shell offers "us".
+  ["exhausted positionals", ["deploy", "eu", "u"], [], ["--version", "-V"]],
   ["optional values", ["deploy", "--color", "r"], ["red"]],
   ["optional values stop at options", ["deploy", "--color", "--t"], ["--target", "--tags"]],
   ["variadic values", ["deploy", "--tags", "one", "t"], ["two"]],
@@ -34,10 +35,10 @@ const cases = [
 
 for (const shell of shells) {
   test(`${shell}: shared completion behavior`, () => {
-    for (const [name, words, expected] of cases) {
+    for (const [name, words, expected, fishExpected] of cases) {
       assert.deepEqual(
         complete(shell, fixture(), ["csc-test-cli", ...words]).sort(),
-        [...expected].sort(),
+        [...(shell === "fish" && fishExpected ? fishExpected : expected)].sort(),
         name,
       );
     }

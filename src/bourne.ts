@@ -14,9 +14,21 @@ export function renderBourne(
   prefix: string,
   shell: "bash" | "zsh",
 ): string {
-  const specs: CompletionHint[] = [];
-  const spec = (value: CompletionHint): number => {
-    specs.push(value);
+  // Zsh candidates carry a description ID until the final matching step. This
+  // preserves each candidate's description across default-command alternatives.
+  const descriptions: string[] = [];
+  const described = (words: readonly string[], description: string): string[] => {
+    if (shell === "bash") return [...words];
+    let id = descriptions.indexOf(description);
+    if (id < 0) {
+      id = descriptions.length;
+      descriptions.push(description);
+    }
+    return words.map((word) => `${id}:${word}`);
+  };
+  const specs: { hint: CompletionHint; description: string }[] = [];
+  const spec = (hint: CompletionHint, description: string): number => {
+    specs.push({ hint, description });
     return specs.length - 1;
   };
   const localCases: string[] = [];
@@ -26,14 +38,14 @@ export function renderBourne(
     suggestionCases: string[] = [];
   for (const node of nodes) {
     for (const option of node.options) {
-      const id = spec(option.value);
+      const id = spec(option.value, option.description);
       for (const flag of option.flags)
         optionCases.push(
           `${quote(`${node.id}:${flag}`)}) mode=${option.mode}; combine=${option.combineOptional ? 1 : 0}; value=${id}; variadic=${option.variadic ? 1 : 0} ;;`,
         );
     }
     for (const option of node.localOptions) {
-      const id = spec(option.value);
+      const id = spec(option.value, option.description);
       for (const flag of option.flags)
         localCases.push(
           `${quote(`${node.id}:${flag}`)}) mode=${option.mode}; combine=${option.combineOptional ? 1 : 0}; value=${id}; variadic=${option.variadic ? 1 : 0} ;;`,
@@ -41,7 +53,7 @@ export function renderBourne(
     }
     node.arguments.forEach((arg, index) => {
       argumentCases.push(
-        `${quote(`${node.id}:${index}`)}) value=${spec(arg.value)}; variadic=${arg.variadic ? 1 : 0} ;;`,
+        `${quote(`${node.id}:${index}`)}) value=${spec(arg.value, arg.description)}; variadic=${arg.variadic ? 1 : 0} ;;`,
       );
     });
     for (const child of node.children) {
@@ -49,7 +61,7 @@ export function renderBourne(
         childCases.push(`${quote(`${node.id}:${name}`)}) next=${child.id} ;;`);
     }
     suggestionCases.push(
-      `${node.id}) candidates=${array(node.children.filter((c) => c.visible).flatMap((c) => c.names))}; flags=${array([...new Set(node.options.filter((o) => o.visible).flatMap((o) => o.flags))])} ;;`,
+      `${node.id}) candidates=${array(node.children.filter((c) => c.visible).flatMap((c) => described(c.names, c.description)))}; flags=${array([...new Set(node.options.filter((o) => o.visible).flatMap((o) => described(o.flags, o.description)))])} ;;`,
     );
   }
   const functions = [
@@ -59,8 +71,13 @@ export function renderBourne(
     `${prefix}_argument() {\n value=-1; variadic=0\n case "$state:$position" in\n${argumentCases.join("\n")}\n esac\n}`,
     `${prefix}_child() {\n next=\n case "$state:$1" in\n${childCases.join("\n")}\n esac\n}`,
     `${prefix}_suggestions() {\n candidates=(); flags=()\n case "$state" in\n${suggestionCases.join("\n")}\n esac\n}`,
-    `${prefix}_values() {\n candidates=(); kind=none\n case "$value" in\n${specs.map((s, i) => `${i}) kind=${s.kind}; candidates=${array(s.kind === "choices" ? s.values : [])} ;;`).join("\n")}\n esac\n}`,
+    `${prefix}_values() {\n candidates=(); kind=none\n case "$value" in\n${specs.map((s, i) => `${i}) kind=${s.hint.kind}; candidates=${array(described(s.hint.kind === "choices" ? s.hint.values : [], s.description))} ;;`).join("\n")}\n esac\n}`,
   ];
+  if (shell === "zsh") {
+    functions.push(
+      `${prefix}_description() {\n description=\n case "$1" in\n${descriptions.map((text, id) => `${id}) description=${quote(text)} ;;`).join("\n")}\n esac\n}`,
+    );
+  }
   const runtime = bourneRuntime(shell).replaceAll("__PREFIX__", prefix);
   const registration =
     shell === "bash"

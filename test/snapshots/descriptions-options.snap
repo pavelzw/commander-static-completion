@@ -1,0 +1,23 @@
+Input: csc-test-cli --<TAB><TAB>
+
+Shell: bash
+
+> csc-test-cli --
+--format   --help     --verbose
+> csc-test-cli --▏
+
+---
+
+Shell: fish
+
+> csc-test-cli --verbose ▏
+--verbose   (Show detailed output)  --format  (Output format)
+--help  (display help for command)
+
+---
+
+Shell: zsh
+
+> csc-test-cli --▏
+--format -- Output format           --verbose -- Show detailed output
+--help -- display help for command

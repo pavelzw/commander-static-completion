@@ -148,14 +148,14 @@ _csc_3c3e584a1e7b51e2_child() {
 _csc_3c3e584a1e7b51e2_suggestions() {
  candidates=(); flags=()
  case "$state" in
-0) candidates=('deploy' 'd' 'remote' 'serve' 's' 'help'); flags=('-V' '--version' '-v' '--verbose' '-h' '--help') ;;
-1) candidates=(); flags=('-V' '--version' '-v' '--verbose' '-t' '--target' '-c' '--color' '--tags' '--no-cache' '--config' '-h' '--help') ;;
-2) candidates=('add' 'help'); flags=('-V' '--version' '-v' '--verbose' '-h' '--help') ;;
-3) candidates=(); flags=('-V' '--version' '-v' '--verbose' '--url' '-h' '--help') ;;
+0) candidates=('0:deploy' '0:d' '1:remote' '1:serve' '1:s' '2:help'); flags=('3:-V' '3:--version' '1:-v' '1:--verbose' '2:-h' '2:--help') ;;
+1) candidates=(); flags=('3:-V' '3:--version' '1:-v' '1:--verbose' '4:-t' '4:--target' '1:-c' '1:--color' '1:--tags' '1:--no-cache' '1:--config' '2:-h' '2:--help') ;;
+2) candidates=('1:add' '2:help'); flags=('3:-V' '3:--version' '1:-v' '1:--verbose' '2:-h' '2:--help') ;;
+3) candidates=(); flags=('3:-V' '3:--version' '1:-v' '1:--verbose' '1:--url' '2:-h' '2:--help') ;;
 4) candidates=(); flags=() ;;
-5) candidates=(); flags=('-V' '--version' '-v' '--verbose' '-h' '--help') ;;
-6) candidates=('run' 'help'); flags=('-V' '--version' '-v' '--verbose' '-o' '--output' '--directory' '-h' '--help') ;;
-7) candidates=(); flags=('-V' '--version' '-v' '--verbose' '-h' '--help') ;;
+5) candidates=(); flags=('3:-V' '3:--version' '1:-v' '1:--verbose' '2:-h' '2:--help') ;;
+6) candidates=('1:run' '2:help'); flags=('3:-V' '3:--version' '1:-v' '1:--verbose' '1:-o' '1:--output' '1:--directory' '2:-h' '2:--help') ;;
+7) candidates=(); flags=('3:-V' '3:--version' '1:-v' '1:--verbose' '2:-h' '2:--help') ;;
 8) candidates=(); flags=() ;;
 9) candidates=(); flags=() ;;
  esac
@@ -166,63 +166,75 @@ _csc_3c3e584a1e7b51e2_values() {
  case "$value" in
 0) kind=none; candidates=() ;;
 1) kind=none; candidates=() ;;
-2) kind=choices; candidates=('hidden-value') ;;
+2) kind=choices; candidates=('1:hidden-value') ;;
 3) kind=none; candidates=() ;;
 4) kind=none; candidates=() ;;
 5) kind=none; candidates=() ;;
-6) kind=choices; candidates=('hidden-value') ;;
+6) kind=choices; candidates=('1:hidden-value') ;;
 7) kind=none; candidates=() ;;
 8) kind=none; candidates=() ;;
 9) kind=none; candidates=() ;;
-10) kind=choices; candidates=('hidden-value') ;;
-11) kind=choices; candidates=('dev' 'production' 'two words' 'it'\''s fine' '$(touch PWNED)' '`touch PWNED`') ;;
-12) kind=choices; candidates=('red' 'blue') ;;
-13) kind=choices; candidates=('one' 'two') ;;
+10) kind=choices; candidates=('1:hidden-value') ;;
+11) kind=choices; candidates=('4:dev' '4:production' '4:two words' '4:it'\''s fine' '4:$(touch PWNED)' '4:`touch PWNED`') ;;
+12) kind=choices; candidates=('1:red' '1:blue') ;;
+13) kind=choices; candidates=('1:one' '1:two') ;;
 14) kind=none; candidates=() ;;
 15) kind=file; candidates=() ;;
 16) kind=none; candidates=() ;;
-17) kind=choices; candidates=('dev' 'production' 'two words' 'it'\''s fine' '$(touch PWNED)' '`touch PWNED`') ;;
-18) kind=choices; candidates=('red' 'blue') ;;
-19) kind=choices; candidates=('one' 'two') ;;
+17) kind=choices; candidates=('4:dev' '4:production' '4:two words' '4:it'\''s fine' '4:$(touch PWNED)' '4:`touch PWNED`') ;;
+18) kind=choices; candidates=('1:red' '1:blue') ;;
+19) kind=choices; candidates=('1:one' '1:two') ;;
 20) kind=none; candidates=() ;;
 21) kind=file; candidates=() ;;
 22) kind=none; candidates=() ;;
-23) kind=choices; candidates=('eu' 'us') ;;
+23) kind=choices; candidates=('5:eu' '5:us') ;;
 24) kind=none; candidates=() ;;
 25) kind=none; candidates=() ;;
-26) kind=choices; candidates=('hidden-value') ;;
+26) kind=choices; candidates=('1:hidden-value') ;;
 27) kind=none; candidates=() ;;
 28) kind=none; candidates=() ;;
 29) kind=none; candidates=() ;;
 30) kind=none; candidates=() ;;
-31) kind=choices; candidates=('hidden-value') ;;
+31) kind=choices; candidates=('1:hidden-value') ;;
 32) kind=none; candidates=() ;;
 33) kind=none; candidates=() ;;
 34) kind=none; candidates=() ;;
 35) kind=none; candidates=() ;;
-36) kind=choices; candidates=('add') ;;
+36) kind=choices; candidates=('1:add') ;;
 37) kind=none; candidates=() ;;
 38) kind=none; candidates=() ;;
-39) kind=choices; candidates=('hidden-value') ;;
+39) kind=choices; candidates=('1:hidden-value') ;;
 40) kind=none; candidates=() ;;
 41) kind=none; candidates=() ;;
 42) kind=none; candidates=() ;;
 43) kind=none; candidates=() ;;
-44) kind=choices; candidates=('hidden-value') ;;
-45) kind=choices; candidates=('json' 'text') ;;
+44) kind=choices; candidates=('1:hidden-value') ;;
+45) kind=choices; candidates=('1:json' '1:text') ;;
 46) kind=directory; candidates=() ;;
 47) kind=none; candidates=() ;;
-48) kind=choices; candidates=('json' 'text') ;;
+48) kind=choices; candidates=('1:json' '1:text') ;;
 49) kind=directory; candidates=() ;;
 50) kind=none; candidates=() ;;
 51) kind=none; candidates=() ;;
 52) kind=none; candidates=() ;;
-53) kind=choices; candidates=('hidden-value') ;;
+53) kind=choices; candidates=('1:hidden-value') ;;
 54) kind=none; candidates=() ;;
 55) kind=none; candidates=() ;;
-56) kind=choices; candidates=('start' 'stop') ;;
-57) kind=choices; candidates=('run') ;;
-58) kind=choices; candidates=('deploy' 'd' 'remote' 'serve' 's') ;;
+56) kind=choices; candidates=('1:start' '1:stop') ;;
+57) kind=choices; candidates=('1:run') ;;
+58) kind=choices; candidates=('1:deploy' '1:d' '1:remote' '1:serve' '1:s') ;;
+ esac
+}
+
+_csc_3c3e584a1e7b51e2_description() {
+ description=
+ case "$1" in
+0) description='Deploy the application' ;;
+1) description='' ;;
+2) description='display help for command' ;;
+3) description='output the version number' ;;
+4) description='Deployment environment' ;;
+5) description='Deployment region' ;;
  esac
 }
 
@@ -407,17 +419,31 @@ _csc_3c3e584a1e7b51e2() {
     candidates=("${base[@]}" "${candidates[@]}")
   fi
   if [[ -n $cluster_prefix && -n $lead ]]; then lead=-$cluster_prefix${lead#-}; fi
+  local description has_descriptions=0
+  local -a display
   for candidate in "${candidates[@]}"; do
+    _csc_3c3e584a1e7b51e2_description "${candidate%%:*}"
+    candidate=${candidate#*:}
     [[ $candidate == "$current"* ]] || continue
     if [[ -n $cluster_prefix && -z $lead && $candidate == -?* && $candidate != --* ]]; then candidate=-$cluster_prefix${candidate#-}; fi
     local duplicate=0 existing
     for existing in "${COMPREPLY[@]}"; do [[ $existing == "$lead$candidate" ]] && duplicate=1; done
     ((duplicate)) || COMPREPLY+=("$lead$candidate")
+    if (( ! duplicate )); then
+      if [[ -n $description ]]; then
+        display+=("$lead$candidate -- $description"); has_descriptions=1
+      else
+        display+=("$lead$candidate")
+      fi
+    fi
   done
   emulate -L zsh
   # Restore compinit options before calling native completion helpers.
   if ((${#_comp_options[@]})); then setopt "${_comp_options[@]}"; fi
-  if ((${#COMPREPLY[@]})); then compadd -- "${COMPREPLY[@]}"; fi
+  if ((${#COMPREPLY[@]})); then
+    if ((has_descriptions)); then compadd -d display -- "${COMPREPLY[@]}";
+    else compadd -- "${COMPREPLY[@]}"; fi
+  fi
   if [[ $kind == file || $kind == directory ]]; then
     # Native file completion handles quoting and directory suffixes.
     if [[ -n $lead ]]; then compset -P "${(b)lead}"; fi

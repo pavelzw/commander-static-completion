@@ -66,10 +66,11 @@ PATH=/nonexistent
 `;
       args = `--noprofile --rcfile ./setup -i`;
     } else if (shell === "zsh") {
+      // Signal readiness from the prompt, after startup commands have finished.
       setup = `autoload -Uz compinit
 compinit -D -u
 ${completion}
-PROMPT='> '
+PROMPT=$'%{\\e]777;CSC_READY\\a%}> '
 RPROMPT=
 setopt NO_BEEP
 unsetopt AUTO_MENU MENU_COMPLETE
@@ -80,7 +81,6 @@ zle -N _mark
 bindkey '^X^G' _mark
 csc-test-cli() { printf invoked > invoked; }
 PATH=/nonexistent
-printf '${ready}'
 `;
       args = `-f -i`;
     } else {

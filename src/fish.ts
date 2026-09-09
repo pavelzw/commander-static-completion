@@ -18,11 +18,17 @@ const caseKey = (value: string): string =>
   quote(value.replaceAll("\\", "\\\\").replaceAll("*", "\\*"));
 
 export function renderFish(nodes: ModelCommand[], executable: string, prefix: string): string {
-  const specs: CompletionHint[] = [];
-  const spec = (value: CompletionHint): number => {
-    specs.push(value);
+  const specs: { hint: CompletionHint; description: string }[] = [];
+  const spec = (hint: CompletionHint, description: string): number => {
+    specs.push({ hint, description });
     return specs.length - 1;
   };
+  const described = (words: readonly string[], description: string): string =>
+    words
+      .map((word) =>
+        description ? `printf '%s\\t%s\\n' ${quote(word)} ${quote(description)}` : print([word]),
+      )
+      .join("\n ") || "return 0";
   const localCases: string[] = [];
   const optionCases: string[] = [],
     argumentCases: string[] = [],
@@ -31,7 +37,7 @@ export function renderFish(nodes: ModelCommand[], executable: string, prefix: st
     flagCases: string[] = [];
   for (const node of nodes) {
     for (const option of node.options) {
-      const value = spec(option.value);
+      const value = spec(option.value, option.description);
       for (const flag of option.flags) {
         optionCases.push(
           `case ${caseKey(`${node.id}:${flag}`)}\n ${print([option.mode, String(value), option.variadic ? "1" : "0", option.combineOptional ? "1" : "0"])}`,
@@ -39,7 +45,7 @@ export function renderFish(nodes: ModelCommand[], executable: string, prefix: st
       }
     }
     for (const option of node.localOptions) {
-      const value = spec(option.value);
+      const value = spec(option.value, option.description);
       for (const flag of option.flags)
         localCases.push(
           `case ${caseKey(`${node.id}:${flag}`)}\n ${print([option.mode, String(value), option.variadic ? "1" : "0", option.combineOptional ? "1" : "0"])}`,
@@ -47,7 +53,7 @@ export function renderFish(nodes: ModelCommand[], executable: string, prefix: st
     }
     node.arguments.forEach((arg, index) => {
       argumentCases.push(
-        `case ${quote(`${node.id}:${index}`)}\n ${print([String(spec(arg.value)), arg.variadic ? "1" : "0"])}`,
+        `case ${quote(`${node.id}:${index}`)}\n ${print([String(spec(arg.value, arg.description)), arg.variadic ? "1" : "0"])}`,
       );
     });
     for (const child of node.children) {
@@ -55,10 +61,20 @@ export function renderFish(nodes: ModelCommand[], executable: string, prefix: st
         childCases.push(`case ${caseKey(`${node.id}:${name}`)}\n ${print([String(child.id)])}`);
     }
     commandCases.push(
-      `case ${node.id}\n ${print(node.children.filter((c) => c.visible).flatMap((c) => c.names))}`,
+      `case ${node.id}\n ${
+        node.children
+          .filter((c) => c.visible)
+          .map((c) => described(c.names, c.description))
+          .join("\n ") || "return 0"
+      }`,
     );
     flagCases.push(
-      `case ${node.id}\n ${print([...new Set(node.options.filter((o) => o.visible).flatMap((o) => o.flags))])}`,
+      `case ${node.id}\n ${
+        node.options
+          .filter((o) => o.visible && o.flags.length > 0)
+          .map((o) => described(o.flags, o.description))
+          .join("\n ") || "return 0"
+      }`,
     );
   }
   const helper = (
@@ -86,12 +102,15 @@ export function renderFish(nodes: ModelCommand[], executable: string, prefix: st
     helper(
       "values",
       "$argv[1]",
-      specs.map((s, i) => `case ${i}\n ${print(s.kind === "choices" ? s.values : [])}`),
+      specs.map(
+        (s, i) =>
+          `case ${i}\n ${described(s.hint.kind === "choices" ? s.hint.values : [], s.description)}`,
+      ),
     ),
     helper(
       "kind",
       "$argv[1]",
-      specs.map((s, i) => `case ${i}\n ${print([s.kind])}`),
+      specs.map((s, i) => `case ${i}\n ${print([s.hint.kind])}`),
       ["none"],
     ),
   ];

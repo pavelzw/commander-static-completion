@@ -1,0 +1,23 @@
+Input: csc-test-cli s<TAB><TAB>
+
+Shell: bash
+
+> csc-test-cli s
+s       serve   st      status
+> csc-test-cli s▏
+
+---
+
+Shell: fish
+
+> csc-test-cli serve ▏
+serve  (Serve the app)  status  (Show app status)
+s      (Serve the app)  st      (Show app status)
+
+---
+
+Shell: zsh
+
+> csc-test-cli s▏
+s -- Serve the app         st -- Show app status
+serve -- Serve the app     status -- Show app status

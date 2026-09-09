@@ -89,7 +89,7 @@ test("zsh: compinit discovers overrides and autoload works on first and repeated
 autoload -Uz compinit
 compinit -D -u
 PATH=/nonexistent
-compadd() { shift; print -rl -- "$@"; }
+compadd() { while [[ $1 != -- ]]; do shift; done; shift; print -rl -- "$@"; }
 for executable in ${names.map(quote).join(" ")}; do
   [[ "\${_comps[$executable]}" == "_$executable" ]] || exit 1
   words=("$executable" deploy --target pr)

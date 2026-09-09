@@ -1,8 +1,10 @@
+import { stripVTControlCharacters } from "node:util";
 import type { Argument, Command, Option } from "commander";
 import type { CompletionHint } from "./types.js";
 
 export interface ModelOption {
   flags: string[];
+  description: string;
   visible: boolean;
   inherited: boolean;
   // Preserve the declaring command's setting when forwarding ancestor options.
@@ -19,8 +21,8 @@ export interface ModelCommand {
   positional: boolean;
   negativeNumbers: boolean;
   localOptions: ModelOption[];
-  arguments: { variadic: boolean; value: CompletionHint }[];
-  children: { id: number; names: string[]; visible: boolean }[];
+  arguments: { variadic: boolean; value: CompletionHint; description: string }[];
+  children: { id: number; names: string[]; visible: boolean; description: string }[];
 }
 interface CommanderInternals {
   _enablePositionalOptions?: boolean;
@@ -36,6 +38,13 @@ export function checkCompatibility(command: Command) {
   if (internal._executableHandler) {
     throw new Error(`Supply an in-process definition for executable subcommand ${command.name()}.`);
   }
+}
+
+// Descriptions are display-only, single-line text in completion menus.
+function description(value: string): string {
+  // oxlint-disable-next-line no-control-regex -- Remove terminal controls and record delimiters.
+  const controls = /[\s\x00-\x1f\x7f-\x9f]+/gu;
+  return stripVTControlCharacters(value).replace(controls, " ").trim();
 }
 
 export const hints = new WeakMap<Option | Argument, CompletionHint>();
@@ -64,6 +73,7 @@ export function extract(program: Command): ModelCommand[] {
     const localOptions: ModelOption[] = local.map((option) => ({
       flags: [option.short, option.long].filter((flag): flag is string => flag !== undefined),
       visible: visibleOptions.includes(option),
+      description: description(option.description),
       inherited: command.options.includes(option),
       combineOptional: internal._combineFlagAndOptionalValue !== false,
       mode: option.required ? "required" : option.optional ? "optional" : "boolean",
@@ -93,6 +103,7 @@ export function extract(program: Command): ModelCommand[] {
       arguments: command.registeredArguments.map((arg) => ({
         variadic: arg.variadic,
         value: valueSpec(arg),
+        description: description(arg.description),
       })),
       children: [],
     };
@@ -114,6 +125,7 @@ export function extract(program: Command): ModelCommand[] {
           arguments: [
             {
               variadic: false,
+              description: "",
               value: {
                 kind: "choices",
                 values: visibleCommands
@@ -137,6 +149,7 @@ export function extract(program: Command): ModelCommand[] {
       node.children.push({
         id: childNode.id,
         names: [child.name(), ...child.aliases()],
+        description: description(child.description()),
         visible: visibleCommands.includes(child),
       });
     }

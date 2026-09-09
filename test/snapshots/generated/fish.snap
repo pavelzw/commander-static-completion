@@ -269,11 +269,17 @@ end
 function _csc_3c7563197e58fdef_commands
  switch "$argv[1]"
  case 0
- printf '%s\n' 'deploy' 'd' 'remote' 'serve' 's' 'help'
+ printf '%s\t%s\n' 'deploy' 'Deploy the application'
+ printf '%s\t%s\n' 'd' 'Deploy the application'
+ printf '%s\n' 'remote'
+ printf '%s\n' 'serve'
+ printf '%s\n' 's'
+ printf '%s\t%s\n' 'help' 'display help for command'
  case 1
  return 0
  case 2
- printf '%s\n' 'add' 'help'
+ printf '%s\n' 'add'
+ printf '%s\t%s\n' 'help' 'display help for command'
  case 3
  return 0
  case 4
@@ -281,7 +287,8 @@ function _csc_3c7563197e58fdef_commands
  case 5
  return 0
  case 6
- printf '%s\n' 'run' 'help'
+ printf '%s\n' 'run'
+ printf '%s\t%s\n' 'help' 'display help for command'
  case 7
  return 0
  case 8
@@ -296,21 +303,67 @@ end
 function _csc_3c7563197e58fdef_flags
  switch "$argv[1]"
  case 0
- printf '%s\n' '-V' '--version' '-v' '--verbose' '-h' '--help'
+ printf '%s\t%s\n' '-V' 'output the version number'
+ printf '%s\t%s\n' '--version' 'output the version number'
+ printf '%s\n' '-v'
+ printf '%s\n' '--verbose'
+ printf '%s\t%s\n' '-h' 'display help for command'
+ printf '%s\t%s\n' '--help' 'display help for command'
  case 1
- printf '%s\n' '-V' '--version' '-v' '--verbose' '-t' '--target' '-c' '--color' '--tags' '--no-cache' '--config' '-h' '--help'
+ printf '%s\t%s\n' '-V' 'output the version number'
+ printf '%s\t%s\n' '--version' 'output the version number'
+ printf '%s\n' '-v'
+ printf '%s\n' '--verbose'
+ printf '%s\t%s\n' '-t' 'Deployment environment'
+ printf '%s\t%s\n' '--target' 'Deployment environment'
+ printf '%s\n' '-c'
+ printf '%s\n' '--color'
+ printf '%s\n' '--tags'
+ printf '%s\n' '--no-cache'
+ printf '%s\n' '--config'
+ printf '%s\t%s\n' '-h' 'display help for command'
+ printf '%s\t%s\n' '--help' 'display help for command'
  case 2
- printf '%s\n' '-V' '--version' '-v' '--verbose' '-h' '--help'
+ printf '%s\t%s\n' '-V' 'output the version number'
+ printf '%s\t%s\n' '--version' 'output the version number'
+ printf '%s\n' '-v'
+ printf '%s\n' '--verbose'
+ printf '%s\t%s\n' '-h' 'display help for command'
+ printf '%s\t%s\n' '--help' 'display help for command'
  case 3
- printf '%s\n' '-V' '--version' '-v' '--verbose' '--url' '-h' '--help'
+ printf '%s\t%s\n' '-V' 'output the version number'
+ printf '%s\t%s\n' '--version' 'output the version number'
+ printf '%s\n' '-v'
+ printf '%s\n' '--verbose'
+ printf '%s\n' '--url'
+ printf '%s\t%s\n' '-h' 'display help for command'
+ printf '%s\t%s\n' '--help' 'display help for command'
  case 4
  return 0
  case 5
- printf '%s\n' '-V' '--version' '-v' '--verbose' '-h' '--help'
+ printf '%s\t%s\n' '-V' 'output the version number'
+ printf '%s\t%s\n' '--version' 'output the version number'
+ printf '%s\n' '-v'
+ printf '%s\n' '--verbose'
+ printf '%s\t%s\n' '-h' 'display help for command'
+ printf '%s\t%s\n' '--help' 'display help for command'
  case 6
- printf '%s\n' '-V' '--version' '-v' '--verbose' '-o' '--output' '--directory' '-h' '--help'
+ printf '%s\t%s\n' '-V' 'output the version number'
+ printf '%s\t%s\n' '--version' 'output the version number'
+ printf '%s\n' '-v'
+ printf '%s\n' '--verbose'
+ printf '%s\n' '-o'
+ printf '%s\n' '--output'
+ printf '%s\n' '--directory'
+ printf '%s\t%s\n' '-h' 'display help for command'
+ printf '%s\t%s\n' '--help' 'display help for command'
  case 7
- printf '%s\n' '-V' '--version' '-v' '--verbose' '-h' '--help'
+ printf '%s\t%s\n' '-V' 'output the version number'
+ printf '%s\t%s\n' '--version' 'output the version number'
+ printf '%s\n' '-v'
+ printf '%s\n' '--verbose'
+ printf '%s\t%s\n' '-h' 'display help for command'
+ printf '%s\t%s\n' '--help' 'display help for command'
  case 8
  return 0
  case 9
@@ -345,11 +398,18 @@ function _csc_3c7563197e58fdef_values
  case 10
  printf '%s\n' 'hidden-value'
  case 11
- printf '%s\n' 'dev' 'production' 'two words' 'it\'s fine' '$(touch PWNED)' '`touch PWNED`'
+ printf '%s\t%s\n' 'dev' 'Deployment environment'
+ printf '%s\t%s\n' 'production' 'Deployment environment'
+ printf '%s\t%s\n' 'two words' 'Deployment environment'
+ printf '%s\t%s\n' 'it\'s fine' 'Deployment environment'
+ printf '%s\t%s\n' '$(touch PWNED)' 'Deployment environment'
+ printf '%s\t%s\n' '`touch PWNED`' 'Deployment environment'
  case 12
- printf '%s\n' 'red' 'blue'
+ printf '%s\n' 'red'
+ printf '%s\n' 'blue'
  case 13
- printf '%s\n' 'one' 'two'
+ printf '%s\n' 'one'
+ printf '%s\n' 'two'
  case 14
  return 0
  case 15
@@ -357,11 +417,18 @@ function _csc_3c7563197e58fdef_values
  case 16
  return 0
  case 17
- printf '%s\n' 'dev' 'production' 'two words' 'it\'s fine' '$(touch PWNED)' '`touch PWNED`'
+ printf '%s\t%s\n' 'dev' 'Deployment environment'
+ printf '%s\t%s\n' 'production' 'Deployment environment'
+ printf '%s\t%s\n' 'two words' 'Deployment environment'
+ printf '%s\t%s\n' 'it\'s fine' 'Deployment environment'
+ printf '%s\t%s\n' '$(touch PWNED)' 'Deployment environment'
+ printf '%s\t%s\n' '`touch PWNED`' 'Deployment environment'
  case 18
- printf '%s\n' 'red' 'blue'
+ printf '%s\n' 'red'
+ printf '%s\n' 'blue'
  case 19
- printf '%s\n' 'one' 'two'
+ printf '%s\n' 'one'
+ printf '%s\n' 'two'
  case 20
  return 0
  case 21
@@ -369,7 +436,8 @@ function _csc_3c7563197e58fdef_values
  case 22
  return 0
  case 23
- printf '%s\n' 'eu' 'us'
+ printf '%s\t%s\n' 'eu' 'Deployment region'
+ printf '%s\t%s\n' 'us' 'Deployment region'
  case 24
  return 0
  case 25
@@ -413,13 +481,15 @@ function _csc_3c7563197e58fdef_values
  case 44
  printf '%s\n' 'hidden-value'
  case 45
- printf '%s\n' 'json' 'text'
+ printf '%s\n' 'json'
+ printf '%s\n' 'text'
  case 46
  return 0
  case 47
  return 0
  case 48
- printf '%s\n' 'json' 'text'
+ printf '%s\n' 'json'
+ printf '%s\n' 'text'
  case 49
  return 0
  case 50
@@ -435,11 +505,16 @@ function _csc_3c7563197e58fdef_values
  case 55
  return 0
  case 56
- printf '%s\n' 'start' 'stop'
+ printf '%s\n' 'start'
+ printf '%s\n' 'stop'
  case 57
  printf '%s\n' 'run'
  case 58
- printf '%s\n' 'deploy' 'd' 'remote' 'serve' 's'
+ printf '%s\n' 'deploy'
+ printf '%s\n' 'd'
+ printf '%s\n' 'remote'
+ printf '%s\n' 'serve'
+ printf '%s\n' 's'
  case '*'
  return 0
  end

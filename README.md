@@ -107,6 +107,18 @@ stores metadata separately, without altering parsing. Supported hints:
 - `{ kind: 'none' }`: suppress value suggestions.
 
 Commander `.choices()` is used automatically unless a hint overrides it.
+
+Fish and Zsh display Commander descriptions beside command names, aliases, and
+option flags. Static option and argument choices use their declaration's
+description; descriptions never become part of the inserted value. Bash keeps
+its existing suggestions without descriptions. Native filesystem suggestions
+keep the shell's own display behavior.
+
+Descriptions are plain single-line text: terminal formatting is removed and
+whitespace/control characters are collapsed to spaces. Shell punctuation is
+literal. Fish's native matching can also find suggestions by description text,
+so its results can differ from Zsh's prefix matching. No additional API or
+runtime CLI invocation is required.
 Unannotated values have no suggestions. Hints also work with `Argument` objects.
 File completion examines the filesystem at Tab time using the shell's native
 completion facilities.

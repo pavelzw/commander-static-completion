@@ -68,7 +68,7 @@ export function validateExample(consumer: string): void {
       assert.ok(name);
       input = `source ${quote(path)}\nmycli() { echo 'CLI invoked' >&2; }\nPATH=/nonexistent\nCOMP_WORDS=(mycli deploy --target pr)\nCOMP_CWORD=3\n${name}\nprintf '%s\\n' "\${COMPREPLY[@]}"\n`;
     } else if (shell === "zsh") {
-      input = `fpath=(${quote(directory)} "\${fpath[@]}")\nautoload -Uz compinit\ncompinit -D -u\nmycli() { echo 'CLI invoked' >&2; }\nPATH=/nonexistent\ncompadd() { shift; printf '%s\\n' "$@"; }\nwords=(mycli deploy --target pr)\nCURRENT=4\nPREFIX=pr\n"\${_comps[mycli]}"\n`;
+      input = `fpath=(${quote(directory)} "\${fpath[@]}")\nautoload -Uz compinit\ncompinit -D -u\nmycli() { echo 'CLI invoked' >&2; }\nPATH=/nonexistent\ncompadd() { while [[ $1 != -- ]]; do shift; done; shift; printf '%s\\n' "$@"; }\nwords=(mycli deploy --target pr)\nCURRENT=4\nPREFIX=pr\n"\${_comps[mycli]}"\n`;
     } else {
       // Fish finds the installed mycli.fish by name without explicitly sourcing it.
       input = `set -g fish_complete_path ${quote(directory)}\nfunction mycli; echo 'CLI invoked' >&2; end\nset -gx PATH /nonexistent\ncomplete -C 'mycli deploy --target pr'\n`;

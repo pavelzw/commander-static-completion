@@ -112,13 +112,28 @@ ${shell === "bash" ? bashUnquote : ""}
     candidates=("\${base[@]}" "\${candidates[@]}")
   fi
   if [[ -n $cluster_prefix && -n $lead ]]; then lead=-$cluster_prefix\${lead#-}; fi
-  for candidate in "\${candidates[@]}"; do
-    [[ $candidate == "$current"* ]] || continue
+${shell === "zsh" ? "  local description has_descriptions=0\n  local -a display\n" : ""}  for candidate in "\${candidates[@]}"; do
+${
+  shell === "zsh"
+    ? `    __PREFIX___description "\${candidate%%:*}"
+    candidate=\${candidate#*:}\n`
+    : ""
+}    [[ $candidate == "$current"* ]] || continue
     if [[ -n $cluster_prefix && -z $lead && $candidate == -?* && $candidate != --* ]]; then candidate=-$cluster_prefix\${candidate#-}; fi
     local duplicate=0 existing
     for existing in "\${COMPREPLY[@]}"; do [[ $existing == "$lead$candidate" ]] && duplicate=1; done
     ((duplicate)) || COMPREPLY+=("$lead$candidate")
-  done
+${
+  shell === "zsh"
+    ? `    if (( ! duplicate )); then
+      if [[ -n $description ]]; then
+        display+=("$lead$candidate -- $description"); has_descriptions=1
+      else
+        display+=("$lead$candidate")
+      fi
+    fi\n`
+    : ""
+}  done
 ${shell === "bash" ? bashFiles : zshOutput}
   return 0
 }
@@ -190,7 +205,10 @@ const zshInput = `  emulate -L ksh
 const zshOutput = `  emulate -L zsh
   # Restore compinit options before calling native completion helpers.
   if ((\${#_comp_options[@]})); then setopt "\${_comp_options[@]}"; fi
-  if ((\${#COMPREPLY[@]})); then compadd -- "\${COMPREPLY[@]}"; fi
+  if ((\${#COMPREPLY[@]})); then
+    if ((has_descriptions)); then compadd -d display -- "\${COMPREPLY[@]}";
+    else compadd -- "\${COMPREPLY[@]}"; fi
+  fi
   if [[ $kind == file || $kind == directory ]]; then
     # Native file completion handles quoting and directory suffixes.
     if [[ -n $lead ]]; then compset -P "\${(b)lead}"; fi

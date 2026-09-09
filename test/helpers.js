@@ -38,7 +38,7 @@ function otherComplete(shell, program, words, cwd) {
   } else {
     // Test scanner output directly; the separate ZLE test covers native registration.
     const fn = script.match(/^\s*compdef (\w+)/m)[1];
-    input = `compdef() { :; }\n${script}\ncompadd() { shift; printf '%s\\n' "$@"; }\ncsc-test-cli() { echo 'CLI WAS INVOKED' >&2; }\nPATH=/nonexistent\nwords=(${words.map(quote).join(" ")})\nCURRENT=${words.length}\nPREFIX=${quote(words.at(-1))}\n${fn}\n`;
+    input = `compdef() { :; }\n${script}\ncompadd() { while [[ $1 != -- ]]; do shift; done; shift; printf '%s\\n' "$@"; }\ncsc-test-cli() { echo 'CLI WAS INVOKED' >&2; }\nPATH=/nonexistent\nwords=(${words.map(quote).join(" ")})\nCURRENT=${words.length}\nPREFIX=${quote(words.at(-1))}\n${fn}\n`;
   }
   const result = spawnSync(executables[shell], shell === "fish" ? ["--no-config"] : ["-f"], {
     input,

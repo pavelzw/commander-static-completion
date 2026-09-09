@@ -1,9 +1,18 @@
 import { test } from "node:test";
 import { assertSnapshot } from "./snapshot-assert.js";
-import { fixture, defaultSnapshotFixture, optionalClusterSnapshotFixture } from "./fixture.js";
+import {
+  fixture,
+  defaultSnapshotFixture,
+  optionalClusterSnapshotFixture,
+  descriptionFixture,
+} from "./fixture.js";
 import { capture } from "./snapshot-harness.js";
 
 const cases = [
+  ["descriptions-commands", "csc-test-cli s<TAB><TAB>", descriptionFixture],
+  ["descriptions-options", "csc-test-cli --<TAB><TAB>", descriptionFixture],
+  ["descriptions-values", "csc-test-cli serve --format <TAB><TAB>", descriptionFixture],
+  ["descriptions-arguments", "csc-test-cli serve a<TAB><TAB>", descriptionFixture],
   ["optional-cluster-boolean", "csc-test-cli -ov ap<TAB>", optionalClusterSnapshotFixture],
   ["optional-cluster-last", "csc-test-cli -vo al<TAB>", optionalClusterSnapshotFixture],
   ["optional-cluster-required", "csc-test-cli -orprod<TAB>", optionalClusterSnapshotFixture],

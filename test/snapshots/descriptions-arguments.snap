@@ -1,0 +1,21 @@
+Input: csc-test-cli serve a<TAB><TAB>
+
+Shell: bash
+
+> csc-test-cli serve a
+app     assets
+> csc-test-cli serve a▏
+
+---
+
+Shell: fish
+
+> csc-test-cli serve app ▏
+app  (Build target)  assets  (Build target)
+
+---
+
+Shell: zsh
+
+> csc-test-cli serve a▏
+app -- Build target     assets -- Build target

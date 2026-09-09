@@ -52,6 +52,9 @@ export function optionalClusterSnapshotFixture() {
 // Include parser settings and hint kinds in the full generated-script snapshots.
 export function generatedSnapshotFixture() {
   const program = fixture();
+  program.commands[0].description("Deploy the application");
+  program.commands[0].options[0].description = "Deployment environment";
+  program.commands[0].registeredArguments[0].description = "Deployment region";
   const serve = program
     .command("serve", { isDefault: true })
     .alias("s")
@@ -63,5 +66,20 @@ export function generatedSnapshotFixture() {
     .command("run", { isDefault: true })
     .passThroughOptions()
     .addArgument(new Argument("[args...]").choices(["start", "stop"]));
+  return program;
+}
+
+export function descriptionFixture() {
+  const program = new Command("csc-test-cli").enablePositionalOptions();
+  program.option("-v, --verbose", "Show detailed output");
+  const serve = program
+    .command("serve", { isDefault: true })
+    .alias("s")
+    .description("Serve the app");
+  serve.addOption(new Option("-f, --format <format>", "Output format").choices(["json", "text"]));
+  serve.addOption(new Option("--secret", "Hidden option").hideHelp());
+  serve.addArgument(new Argument("[target]", "Build target").choices(["app", "assets"]));
+  program.command("status").alias("st").description("Show app status");
+  program.command("internal", { hidden: true }).description("Hidden command");
   return program;
 }

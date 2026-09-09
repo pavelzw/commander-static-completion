@@ -1,0 +1,21 @@
+Input: csc-test-cli serve --format <TAB><TAB>
+
+Shell: bash
+
+> csc-test-cli serve --format
+json  text
+> csc-test-cli serve --format ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli serve --format json ▏
+json  (Output format)  text  (Output format)
+
+---
+
+Shell: zsh
+
+> csc-test-cli serve --format ▏
+json -- Output format  text -- Output format

@@ -82,7 +82,7 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
 
 ## 4. Completion experience and integration
 
-- [ ] Carry descriptions through the model and display them in Zsh and Fish.
+- [x] Carry descriptions through the model and display them in Zsh and Fish.
 - [ ] Decide whether to add richer static hints, such as filename extensions or
       choice descriptions, while preserving Commander `.choices()` by default.
 - [x] Add a complete runnable CLI example with a `completions <shell>` command.
