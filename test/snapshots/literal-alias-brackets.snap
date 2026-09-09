@@ -1,0 +1,17 @@
+Input: csc-test-cli ali<TAB>--value pr<TAB>
+
+Shell: bash
+
+> csc-test-cli ali\[ab\] --value production ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli ali\[ab\] --value production ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli ali\[ab\] --value production ▏

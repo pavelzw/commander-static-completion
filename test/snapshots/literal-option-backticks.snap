@@ -1,0 +1,23 @@
+Input: csc-test-cli --flag\`echo\>PWNED\` pr<TAB>
+
+Shell: bash (3.2)
+
+> csc-test-cli --flag\`echo\>PWNED\` production ▏
+
+---
+
+Shell: bash (4+)
+
+> csc-test-cli --flag\`echo\>PWNED\` pr▏
+
+---
+
+Shell: fish
+
+> csc-test-cli --flag\`echo\>PWNED\` production ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli --flag\`echo\>PWNED\` production ▏

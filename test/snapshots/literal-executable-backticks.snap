@@ -1,0 +1,17 @@
+Input: cli\`echo\>PWNED\` --value pr<TAB>
+
+Shell: bash
+
+> cli\`echo\>PWNED\` --value pr▏
+
+---
+
+Shell: fish
+
+> cli\`echo\>PWNED\` --value production ▏
+
+---
+
+Shell: zsh
+
+> cli\`echo\>PWNED\` --value production ▏

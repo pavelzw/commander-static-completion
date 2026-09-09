@@ -103,3 +103,16 @@ export function pathSnapshotFixture() {
   );
   return program;
 }
+
+export function literalFixture(kind, suffix) {
+  const program = new Command(kind === "executable" ? `cli${suffix}` : "csc-test-cli");
+  const option = new Option(
+    kind === "option" ? `--flag${suffix} <value>` : "--value <value>",
+  ).choices(kind === "choice" ? [`val${suffix}`] : ["production"]);
+  if (kind === "command" || kind === "alias") {
+    const child = new Command(kind === "command" ? `cmd${suffix}` : "target").addOption(option);
+    if (kind === "alias") child.alias(`ali${suffix}`);
+    program.addCommand(child);
+  } else program.addOption(option);
+  return program;
+}

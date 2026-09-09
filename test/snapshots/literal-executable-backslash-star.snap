@@ -1,0 +1,17 @@
+Input: cli\\\* --value pr<TAB>
+
+Shell: bash
+
+> cli\\\* --value pr▏
+
+---
+
+Shell: fish
+
+> cli\\\* --value production ▏
+
+---
+
+Shell: zsh
+
+> cli\\\* --value production ▏

@@ -1,0 +1,17 @@
+Input: csc-test-cli --flag\\ pr<TAB>
+
+Shell: bash
+
+> csc-test-cli --flag\\ production ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli --flag\\ production ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli --flag\\ production ▏

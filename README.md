@@ -201,10 +201,33 @@ settings, help behavior, and the private adapter.
 
 Custom argument parsers, option conflicts/implied values, and runtime plugin discovery are not
 interpreted. The scanner offers completion on incomplete input and is not a
-replacement for Commander validation. Filenames containing newlines are not covered.
-Fish rejects static completion strings containing
-tabs or newlines because its candidate format uses those as delimiters. Fish
-applies its own matching and ordering rules to candidates.
+replacement for Commander validation.
+
+Insertable command names, aliases, flags, and choice values must be nonempty and
+contain no C0/C1 control characters (including NUL, tabs, newlines, and DEL).
+Generation rejects invalid text with a diagnostic identifying the definition.
+An empty choice list (`.choices([])` or a `choices` hint with `values: []`) is
+valid and supplies no values; an empty string inside a list is rejected.
+Descriptions keep their existing sanitization. Executable names additionally
+cannot contain whitespace, as Zsh's `#compdef` header separates names with it.
+Fish diagnoses tabs and newlines explicitly because they delimit completion records.
+Runtime filenames containing control characters are outside the supported path
+coverage; the static-text validation cannot inspect filesystem candidates.
+Fish applies its own matching and ordering rules to candidates.
+
+Wildcard characters, quotes, backslashes, and shell substitution syntax in
+static names and choices are treated literally. Bash and Zsh decode committed
+quoted tokens without evaluating them, so completion continues after inserting
+such a command name or alias. Fish registers executable names literally as well.
+Bash 3.2/5.x looks up a completion registration using the executable's written
+quoting: a registration for `cli*` is not invoked for `cli\*` or `"cli*"`.
+The executable-name snapshots preserve that native limitation. For Bash, use a
+shell-safe executable or alias and generate for that name with `executable`.
+Mixed quoting of ordinary executable names has the same Bash limitation.
+Bash 5.x also skips the registered function when the immediately preceding word
+contains escaped backticks, for example after an option named
+``--flag`literal` ``. The `literal-option-backticks` snapshot records this
+separately from Bash 3.2. Avoid backticks in option names when targeting Bash.
 
 Bash supports its default `COMP_WORDBREAKS`, removing `=` and/or `:`, and adding
 `,` as a delimiter. Completion preserves that setting. For example,

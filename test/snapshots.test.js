@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { assertSnapshot, assertShellSnapshot } from "./snapshot-assert.js";
 import { executables } from "./helpers.js";
@@ -9,8 +10,60 @@ import {
   descriptionFixture,
   wordBreakFixture,
   pathSnapshotFixture,
+  literalFixture,
 } from "./fixture.js";
 import { capture } from "./snapshot-harness.js";
+
+const literalSuffixes = [
+  ["star", "*"],
+  ["question", "?"],
+  ["brackets", "[ab]"],
+  ["quote", "'"],
+  ["backslash", "\\"],
+  ["backslash-star", "\\*"],
+  ["substitution", "$(echo>PWNED)"],
+  ["backticks", "`echo>PWNED`"],
+];
+const escapeWord = (value) => value.replace(/[^a-zA-Z0-9_.-]/gu, "\\$&");
+for (const kind of ["command", "alias", "option", "choice", "executable"]) {
+  for (const [name, suffix] of literalSuffixes) {
+    const program = literalFixture(kind, suffix);
+    const input =
+      kind === "command"
+        ? "csc-test-cli cmd<TAB>--value pr<TAB>"
+        : kind === "alias"
+          ? "csc-test-cli ali<TAB>--value pr<TAB>"
+          : kind === "option"
+            ? "csc-test-cli " + escapeWord(`--flag${suffix}`) + " pr<TAB>"
+            : kind === "choice"
+              ? "csc-test-cli --value val<TAB>"
+              : escapeWord(program.name()) + " --value pr<TAB>";
+    test(`interactive snapshot: literal-${kind}-${name}`, async () => {
+      const sections = [];
+      const versioned = kind === "option" && name === "backticks";
+      for (const shell of ["bash", "fish", "zsh"]) {
+        const output = await capture(shell, literalFixture(kind, suffix), input);
+        // Bash may not invoke a registered function for quoted executables, or
+        // (in 5.x) when the previous word contains backticks. Snapshot that too.
+        const nativeBashLimitation =
+          shell === "bash" && (kind === "executable" || (versioned && bashVersion !== "3"));
+        if (kind !== "choice" && !nativeBashLimitation) {
+          assert.match(
+            output,
+            /production/,
+            `${shell} must recognize the committed literal ${kind}`,
+          );
+        }
+        const label =
+          shell === "bash" && versioned ? `bash (${bashVersion === "3" ? "3.2" : "4+"})` : shell;
+        sections.push(`Shell: ${label}\n\n${output}`);
+      }
+      const path = new URL(`./snapshots/literal-${kind}-${name}.snap`, import.meta.url);
+      if (versioned) assertShellSnapshot(path, input, sections);
+      else assertSnapshot(path, `Input: ${input}\n\n${sections.join("\n---\n\n")}`);
+    });
+  }
+}
 
 const cases = [
   ["descriptions-commands", "csc-test-cli s<TAB><TAB>", descriptionFixture],

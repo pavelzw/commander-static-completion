@@ -1,0 +1,17 @@
+Input: csc-test-cli --value val<TAB>
+
+Shell: bash
+
+> csc-test-cli --value val\[ab\] ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli --value val\[ab\] ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli --value val\[ab\] ▏

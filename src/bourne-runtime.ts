@@ -1,6 +1,6 @@
 // Shell source is kept in TypeScript so tsc produces a self-contained package.
 export function bourneRuntime(shell: "bash" | "zsh"): string {
-  return `${filterRuntime}\n__PREFIX__() {
+  return `${filterRuntime}\n${shell === "bash" ? bashDecode : ""}__PREFIX__() {
 ${shell === "zsh" ? zshInput : bashInput}
   local state=0 position=0 operands=0 end=0 pending= pending_value=-1 pending_variadic=0
   local passthrough positional negative default_command consume join_next=0
@@ -190,36 +190,37 @@ const bashFiles = String.raw`  if [[ $kind == file || $kind == directory ]]; the
 
 // COMP_WORDS retains quoting characters. Decode syntax without evaluating any
 // parameter expansion, command substitution, or other user-supplied shell code.
+const bashDecode = String.raw`__PREFIX___decode() {
+  local part=$1 char escaped=0 offset
+  decoded=; quote_char=
+  for ((offset=0; offset<__DOLLAR__{#part}; offset++)); do
+    char=__DOLLAR__{part:offset:1}
+    if ((escaped)); then
+      if [[ $quote_char == '"' && $char != '$' && $char != $'\x60' && $char != '"' && $char != \\ && $char != $'\n' ]]; then decoded+='\'; fi
+      decoded+=$char; escaped=0
+    elif [[ $char == \\ && $quote_char != "'" ]]; then escaped=1
+    elif [[ -z $quote_char && ( $char == "'" || $char == '"' ) ]]; then quote_char=$char
+    elif [[ -n $quote_char && $char == "$quote_char" ]]; then quote_char=
+    else decoded+=$char
+    fi
+  done
+  ((escaped)) && decoded+='\'
+  return 0
+}
+`.replaceAll("__DOLLAR__", "$");
+
 const bashUnquote = String.raw`  if [[ -n $COMP_LINE ]]; then
-    local decoded char quote_char escaped part phase=0 path_raw=$current
-    for part in "$readline_prefix" "$current"; do
-      decoded=; quote_char=; escaped=0
-      for ((j=0; j<__DOLLAR__{#part}; j++)); do
-        char=__DOLLAR__{part:j:1}
-        if ((escaped)); then
-          if [[ $quote_char == '"' && $char != '$' && $char != $'\x60' && $char != '"' && $char != \\ && $char != $'\n' ]]; then
-            decoded+='\'
-          fi
-          decoded+=$char; escaped=0
-        elif [[ $char == \\ && $quote_char != "'" ]]; then
-          escaped=1
-        elif [[ -z $quote_char && ( $char == "'" || $char == '"' ) ]]; then
-          quote_char=$char
-        elif [[ -n $quote_char && $char == "$quote_char" ]]; then
-          quote_char=
-        else
-          decoded+=$char
-        fi
-      done
-      ((escaped)) && decoded+='\'
-      if ((phase == 0)); then readline_prefix=$decoded; phase=1; else current=$decoded; fi
-    done
+    local decoded char quote_char path_raw=$current
+    __PREFIX___decode "$readline_prefix"
+    readline_prefix=$decoded
+    __PREFIX___decode "$current"
+    current=$decoded
     if [[ $current == '~'* && $path_raw != '~'* ]]; then literal_tilde=1; fi
   fi
 `.replaceAll("__DOLLAR__", "$");
 
 const zshInput = `  emulate -L ksh
-  local -a COMP_WORDS=("\${words[@]}") COMPREPLY
+  local -a COMP_WORDS=("\${(@Q)words[@]}") COMPREPLY
   local COMP_CWORD=$((CURRENT - 1)) COMP_WORDBREAKS=
   # Ignore text after the cursor in the current token.
   COMP_WORDS[COMP_CWORD]=\${(Q)PREFIX}`;
@@ -268,6 +269,12 @@ const bashInput = String.raw`  local -a COMP_WORDS=("__DOLLAR__{COMP_WORDS[@]}")
     done
     COMP_WORDS=("__DOLLAR__{joined[@]}")
     COMP_CWORD=$((joined_count-1))
+    # Decode committed tokens too, so inserted quoted names route correctly.
+    local decoded quote_char
+    for ((index=1; index<COMP_CWORD; index++)); do
+      __PREFIX___decode "__DOLLAR__{COMP_WORDS[index]}"
+      COMP_WORDS[index]=$decoded
+    done
     # $2 is Readline's replacement text. It can be shorter than the logical word
     # even on Bash 3.2, where COMP_WORDS retains punctuation within each word.
     token=__DOLLAR__{COMP_WORDS[COMP_CWORD]}

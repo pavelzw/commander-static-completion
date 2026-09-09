@@ -290,6 +290,23 @@ _csc_5bf334227f4327fd_filter() {
   fi
 }
 
+_csc_5bf334227f4327fd_decode() {
+  local part=$1 char escaped=0 offset
+  decoded=; quote_char=
+  for ((offset=0; offset<${#part}; offset++)); do
+    char=${part:offset:1}
+    if ((escaped)); then
+      if [[ $quote_char == '"' && $char != '$' && $char != $'\x60' && $char != '"' && $char != \\ && $char != $'\n' ]]; then decoded+='\'; fi
+      decoded+=$char; escaped=0
+    elif [[ $char == \\ && $quote_char != "'" ]]; then escaped=1
+    elif [[ -z $quote_char && ( $char == "'" || $char == '"' ) ]]; then quote_char=$char
+    elif [[ -n $quote_char && $char == "$quote_char" ]]; then quote_char=
+    else decoded+=$char
+    fi
+  done
+  ((escaped)) && decoded+='\'
+  return 0
+}
 _csc_5bf334227f4327fd() {
   local -a COMP_WORDS=("${COMP_WORDS[@]}")
   local COMP_CWORD=$COMP_CWORD readline_prefix= literal_tilde=0
@@ -332,6 +349,12 @@ _csc_5bf334227f4327fd() {
     done
     COMP_WORDS=("${joined[@]}")
     COMP_CWORD=$((joined_count-1))
+    # Decode committed tokens too, so inserted quoted names route correctly.
+    local decoded quote_char
+    for ((index=1; index<COMP_CWORD; index++)); do
+      _csc_5bf334227f4327fd_decode "${COMP_WORDS[index]}"
+      COMP_WORDS[index]=$decoded
+    done
     # $2 is Readline's replacement text. It can be shorter than the logical word
     # even on Bash 3.2, where COMP_WORDS retains punctuation within each word.
     token=${COMP_WORDS[COMP_CWORD]}
@@ -437,29 +460,11 @@ _csc_5bf334227f4327fd() {
   fi
 
   if [[ -n $COMP_LINE ]]; then
-    local decoded char quote_char escaped part phase=0 path_raw=$current
-    for part in "$readline_prefix" "$current"; do
-      decoded=; quote_char=; escaped=0
-      for ((j=0; j<${#part}; j++)); do
-        char=${part:j:1}
-        if ((escaped)); then
-          if [[ $quote_char == '"' && $char != '$' && $char != $'\x60' && $char != '"' && $char != \\ && $char != $'\n' ]]; then
-            decoded+='\'
-          fi
-          decoded+=$char; escaped=0
-        elif [[ $char == \\ && $quote_char != "'" ]]; then
-          escaped=1
-        elif [[ -z $quote_char && ( $char == "'" || $char == '"' ) ]]; then
-          quote_char=$char
-        elif [[ -n $quote_char && $char == "$quote_char" ]]; then
-          quote_char=
-        else
-          decoded+=$char
-        fi
-      done
-      ((escaped)) && decoded+='\'
-      if ((phase == 0)); then readline_prefix=$decoded; phase=1; else current=$decoded; fi
-    done
+    local decoded char quote_char path_raw=$current
+    _csc_5bf334227f4327fd_decode "$readline_prefix"
+    readline_prefix=$decoded
+    _csc_5bf334227f4327fd_decode "$current"
+    current=$decoded
     if [[ $current == '~'* && $path_raw != '~'* ]]; then literal_tilde=1; fi
   fi
 

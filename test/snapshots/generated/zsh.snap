@@ -305,7 +305,7 @@ _csc_3c3e584a1e7b51e2_filter() {
 
 _csc_3c3e584a1e7b51e2() {
   emulate -L ksh
-  local -a COMP_WORDS=("${words[@]}") COMPREPLY
+  local -a COMP_WORDS=("${(@Q)words[@]}") COMPREPLY
   local COMP_CWORD=$((CURRENT - 1)) COMP_WORDBREAKS=
   # Ignore text after the cursor in the current token.
   COMP_WORDS[COMP_CWORD]=${(Q)PREFIX}

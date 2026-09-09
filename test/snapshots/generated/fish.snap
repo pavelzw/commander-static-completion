@@ -27,197 +27,371 @@ function _csc_3c7563197e58fdef_settings
 end
 
 function _csc_3c7563197e58fdef_local_option
- switch "$argv[1]:$argv[2]"
- case '0:-V'
+ if test "$argv[1]:$argv[2]" = '0:-V'
  printf '%s\n' 'boolean' '4' '0' '1'
- case '0:--version'
- printf '%s\n' 'boolean' '4' '0' '1'
- case '0:-v'
- printf '%s\n' 'boolean' '5' '0' '1'
- case '0:--verbose'
- printf '%s\n' 'boolean' '5' '0' '1'
- case '0:--secret'
- printf '%s\n' 'required' '6' '0' '1'
- case '0:-h'
- printf '%s\n' 'boolean' '7' '0' '1'
- case '0:--help'
- printf '%s\n' 'boolean' '7' '0' '1'
- case '1:-t'
- printf '%s\n' 'required' '17' '0' '1'
- case '1:--target'
- printf '%s\n' 'required' '17' '0' '1'
- case '1:-c'
- printf '%s\n' 'optional' '18' '0' '1'
- case '1:--color'
- printf '%s\n' 'optional' '18' '0' '1'
- case '1:--tags'
- printf '%s\n' 'required' '19' '1' '1'
- case '1:--no-cache'
- printf '%s\n' 'boolean' '20' '0' '1'
- case '1:--config'
- printf '%s\n' 'required' '21' '0' '1'
- case '1:-h'
- printf '%s\n' 'boolean' '22' '0' '1'
- case '1:--help'
- printf '%s\n' 'boolean' '22' '0' '1'
- case '2:-h'
- printf '%s\n' 'boolean' '28' '0' '1'
- case '2:--help'
- printf '%s\n' 'boolean' '28' '0' '1'
- case '3:--url'
- printf '%s\n' 'required' '34' '0' '1'
- case '3:-h'
- printf '%s\n' 'boolean' '35' '0' '1'
- case '3:--help'
- printf '%s\n' 'boolean' '35' '0' '1'
- case '5:-h'
- printf '%s\n' 'boolean' '41' '0' '1'
- case '5:--help'
- printf '%s\n' 'boolean' '41' '0' '1'
- case '6:-o'
- printf '%s\n' 'optional' '48' '0' '0'
- case '6:--output'
- printf '%s\n' 'optional' '48' '0' '0'
- case '6:--directory'
- printf '%s\n' 'required' '49' '0' '0'
- case '6:-h'
- printf '%s\n' 'boolean' '50' '0' '0'
- case '6:--help'
- printf '%s\n' 'boolean' '50' '0' '0'
- case '7:-h'
- printf '%s\n' 'boolean' '55' '0' '0'
- case '7:--help'
- printf '%s\n' 'boolean' '55' '0' '0'
- case '*'
- printf '%s\n' 'unknown' '-1' '0'
+ return 0
  end
+ if test "$argv[1]:$argv[2]" = '0:--version'
+ printf '%s\n' 'boolean' '4' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:-v'
+ printf '%s\n' 'boolean' '5' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:--verbose'
+ printf '%s\n' 'boolean' '5' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:--secret'
+ printf '%s\n' 'required' '6' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:-h'
+ printf '%s\n' 'boolean' '7' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:--help'
+ printf '%s\n' 'boolean' '7' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:-t'
+ printf '%s\n' 'required' '17' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--target'
+ printf '%s\n' 'required' '17' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:-c'
+ printf '%s\n' 'optional' '18' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--color'
+ printf '%s\n' 'optional' '18' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--tags'
+ printf '%s\n' 'required' '19' '1' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--no-cache'
+ printf '%s\n' 'boolean' '20' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--config'
+ printf '%s\n' 'required' '21' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:-h'
+ printf '%s\n' 'boolean' '22' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--help'
+ printf '%s\n' 'boolean' '22' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '2:-h'
+ printf '%s\n' 'boolean' '28' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '2:--help'
+ printf '%s\n' 'boolean' '28' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '3:--url'
+ printf '%s\n' 'required' '34' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '3:-h'
+ printf '%s\n' 'boolean' '35' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '3:--help'
+ printf '%s\n' 'boolean' '35' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '5:-h'
+ printf '%s\n' 'boolean' '41' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '5:--help'
+ printf '%s\n' 'boolean' '41' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:-o'
+ printf '%s\n' 'optional' '48' '0' '0'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:--output'
+ printf '%s\n' 'optional' '48' '0' '0'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:--directory'
+ printf '%s\n' 'required' '49' '0' '0'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:-h'
+ printf '%s\n' 'boolean' '50' '0' '0'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:--help'
+ printf '%s\n' 'boolean' '50' '0' '0'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '7:-h'
+ printf '%s\n' 'boolean' '55' '0' '0'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '7:--help'
+ printf '%s\n' 'boolean' '55' '0' '0'
+ return 0
+ end
+ printf '%s\n' 'unknown' '-1' '0'
 end
 
 function _csc_3c7563197e58fdef_option
- switch "$argv[1]:$argv[2]"
- case '0:-V'
+ if test "$argv[1]:$argv[2]" = '0:-V'
  printf '%s\n' 'boolean' '0' '0' '1'
- case '0:--version'
- printf '%s\n' 'boolean' '0' '0' '1'
- case '0:-v'
- printf '%s\n' 'boolean' '1' '0' '1'
- case '0:--verbose'
- printf '%s\n' 'boolean' '1' '0' '1'
- case '0:--secret'
- printf '%s\n' 'required' '2' '0' '1'
- case '0:-h'
- printf '%s\n' 'boolean' '3' '0' '1'
- case '0:--help'
- printf '%s\n' 'boolean' '3' '0' '1'
- case '1:-V'
- printf '%s\n' 'boolean' '8' '0' '1'
- case '1:--version'
- printf '%s\n' 'boolean' '8' '0' '1'
- case '1:-v'
- printf '%s\n' 'boolean' '9' '0' '1'
- case '1:--verbose'
- printf '%s\n' 'boolean' '9' '0' '1'
- case '1:--secret'
- printf '%s\n' 'required' '10' '0' '1'
- case '1:-t'
- printf '%s\n' 'required' '11' '0' '1'
- case '1:--target'
- printf '%s\n' 'required' '11' '0' '1'
- case '1:-c'
- printf '%s\n' 'optional' '12' '0' '1'
- case '1:--color'
- printf '%s\n' 'optional' '12' '0' '1'
- case '1:--tags'
- printf '%s\n' 'required' '13' '1' '1'
- case '1:--no-cache'
- printf '%s\n' 'boolean' '14' '0' '1'
- case '1:--config'
- printf '%s\n' 'required' '15' '0' '1'
- case '1:-h'
- printf '%s\n' 'boolean' '16' '0' '1'
- case '1:--help'
- printf '%s\n' 'boolean' '16' '0' '1'
- case '2:-V'
- printf '%s\n' 'boolean' '24' '0' '1'
- case '2:--version'
- printf '%s\n' 'boolean' '24' '0' '1'
- case '2:-v'
- printf '%s\n' 'boolean' '25' '0' '1'
- case '2:--verbose'
- printf '%s\n' 'boolean' '25' '0' '1'
- case '2:--secret'
- printf '%s\n' 'required' '26' '0' '1'
- case '2:-h'
- printf '%s\n' 'boolean' '27' '0' '1'
- case '2:--help'
- printf '%s\n' 'boolean' '27' '0' '1'
- case '3:-V'
- printf '%s\n' 'boolean' '29' '0' '1'
- case '3:--version'
- printf '%s\n' 'boolean' '29' '0' '1'
- case '3:-v'
- printf '%s\n' 'boolean' '30' '0' '1'
- case '3:--verbose'
- printf '%s\n' 'boolean' '30' '0' '1'
- case '3:--secret'
- printf '%s\n' 'required' '31' '0' '1'
- case '3:--url'
- printf '%s\n' 'required' '32' '0' '1'
- case '3:-h'
- printf '%s\n' 'boolean' '33' '0' '1'
- case '3:--help'
- printf '%s\n' 'boolean' '33' '0' '1'
- case '5:-V'
- printf '%s\n' 'boolean' '37' '0' '1'
- case '5:--version'
- printf '%s\n' 'boolean' '37' '0' '1'
- case '5:-v'
- printf '%s\n' 'boolean' '38' '0' '1'
- case '5:--verbose'
- printf '%s\n' 'boolean' '38' '0' '1'
- case '5:--secret'
- printf '%s\n' 'required' '39' '0' '1'
- case '5:-h'
- printf '%s\n' 'boolean' '40' '0' '1'
- case '5:--help'
- printf '%s\n' 'boolean' '40' '0' '1'
- case '6:-V'
- printf '%s\n' 'boolean' '42' '0' '1'
- case '6:--version'
- printf '%s\n' 'boolean' '42' '0' '1'
- case '6:-v'
- printf '%s\n' 'boolean' '43' '0' '1'
- case '6:--verbose'
- printf '%s\n' 'boolean' '43' '0' '1'
- case '6:--secret'
- printf '%s\n' 'required' '44' '0' '1'
- case '6:-o'
- printf '%s\n' 'optional' '45' '0' '0'
- case '6:--output'
- printf '%s\n' 'optional' '45' '0' '0'
- case '6:--directory'
- printf '%s\n' 'required' '46' '0' '0'
- case '6:-h'
- printf '%s\n' 'boolean' '47' '0' '0'
- case '6:--help'
- printf '%s\n' 'boolean' '47' '0' '0'
- case '7:-V'
- printf '%s\n' 'boolean' '51' '0' '1'
- case '7:--version'
- printf '%s\n' 'boolean' '51' '0' '1'
- case '7:-v'
- printf '%s\n' 'boolean' '52' '0' '1'
- case '7:--verbose'
- printf '%s\n' 'boolean' '52' '0' '1'
- case '7:--secret'
- printf '%s\n' 'required' '53' '0' '1'
- case '7:-h'
- printf '%s\n' 'boolean' '54' '0' '0'
- case '7:--help'
- printf '%s\n' 'boolean' '54' '0' '0'
- case '*'
- printf '%s\n' 'unknown' '-1' '0'
+ return 0
  end
+ if test "$argv[1]:$argv[2]" = '0:--version'
+ printf '%s\n' 'boolean' '0' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:-v'
+ printf '%s\n' 'boolean' '1' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:--verbose'
+ printf '%s\n' 'boolean' '1' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:--secret'
+ printf '%s\n' 'required' '2' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:-h'
+ printf '%s\n' 'boolean' '3' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:--help'
+ printf '%s\n' 'boolean' '3' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:-V'
+ printf '%s\n' 'boolean' '8' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--version'
+ printf '%s\n' 'boolean' '8' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:-v'
+ printf '%s\n' 'boolean' '9' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--verbose'
+ printf '%s\n' 'boolean' '9' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--secret'
+ printf '%s\n' 'required' '10' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:-t'
+ printf '%s\n' 'required' '11' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--target'
+ printf '%s\n' 'required' '11' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:-c'
+ printf '%s\n' 'optional' '12' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--color'
+ printf '%s\n' 'optional' '12' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--tags'
+ printf '%s\n' 'required' '13' '1' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--no-cache'
+ printf '%s\n' 'boolean' '14' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--config'
+ printf '%s\n' 'required' '15' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:-h'
+ printf '%s\n' 'boolean' '16' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '1:--help'
+ printf '%s\n' 'boolean' '16' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '2:-V'
+ printf '%s\n' 'boolean' '24' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '2:--version'
+ printf '%s\n' 'boolean' '24' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '2:-v'
+ printf '%s\n' 'boolean' '25' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '2:--verbose'
+ printf '%s\n' 'boolean' '25' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '2:--secret'
+ printf '%s\n' 'required' '26' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '2:-h'
+ printf '%s\n' 'boolean' '27' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '2:--help'
+ printf '%s\n' 'boolean' '27' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '3:-V'
+ printf '%s\n' 'boolean' '29' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '3:--version'
+ printf '%s\n' 'boolean' '29' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '3:-v'
+ printf '%s\n' 'boolean' '30' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '3:--verbose'
+ printf '%s\n' 'boolean' '30' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '3:--secret'
+ printf '%s\n' 'required' '31' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '3:--url'
+ printf '%s\n' 'required' '32' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '3:-h'
+ printf '%s\n' 'boolean' '33' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '3:--help'
+ printf '%s\n' 'boolean' '33' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '5:-V'
+ printf '%s\n' 'boolean' '37' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '5:--version'
+ printf '%s\n' 'boolean' '37' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '5:-v'
+ printf '%s\n' 'boolean' '38' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '5:--verbose'
+ printf '%s\n' 'boolean' '38' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '5:--secret'
+ printf '%s\n' 'required' '39' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '5:-h'
+ printf '%s\n' 'boolean' '40' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '5:--help'
+ printf '%s\n' 'boolean' '40' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:-V'
+ printf '%s\n' 'boolean' '42' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:--version'
+ printf '%s\n' 'boolean' '42' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:-v'
+ printf '%s\n' 'boolean' '43' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:--verbose'
+ printf '%s\n' 'boolean' '43' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:--secret'
+ printf '%s\n' 'required' '44' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:-o'
+ printf '%s\n' 'optional' '45' '0' '0'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:--output'
+ printf '%s\n' 'optional' '45' '0' '0'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:--directory'
+ printf '%s\n' 'required' '46' '0' '0'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:-h'
+ printf '%s\n' 'boolean' '47' '0' '0'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:--help'
+ printf '%s\n' 'boolean' '47' '0' '0'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '7:-V'
+ printf '%s\n' 'boolean' '51' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '7:--version'
+ printf '%s\n' 'boolean' '51' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '7:-v'
+ printf '%s\n' 'boolean' '52' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '7:--verbose'
+ printf '%s\n' 'boolean' '52' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '7:--secret'
+ printf '%s\n' 'required' '53' '0' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '7:-h'
+ printf '%s\n' 'boolean' '54' '0' '0'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '7:--help'
+ printf '%s\n' 'boolean' '54' '0' '0'
+ return 0
+ end
+ printf '%s\n' 'unknown' '-1' '0'
 end
 
 function _csc_3c7563197e58fdef_argument
@@ -238,32 +412,51 @@ function _csc_3c7563197e58fdef_argument
 end
 
 function _csc_3c7563197e58fdef_child
- switch "$argv[1]:$argv[2]"
- case '0:deploy'
+ if test "$argv[1]:$argv[2]" = '0:deploy'
  printf '%s\n' '1'
- case '0:d'
- printf '%s\n' '1'
- case '0:remote'
- printf '%s\n' '2'
- case '0:internal'
- printf '%s\n' '5'
- case '0:serve'
- printf '%s\n' '6'
- case '0:s'
- printf '%s\n' '6'
- case '0:help'
- printf '%s\n' '9'
- case '2:add'
- printf '%s\n' '3'
- case '2:help'
- printf '%s\n' '4'
- case '6:run'
- printf '%s\n' '7'
- case '6:help'
- printf '%s\n' '8'
- case '*'
- printf '%s\n' '-1'
+ return 0
  end
+ if test "$argv[1]:$argv[2]" = '0:d'
+ printf '%s\n' '1'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:remote'
+ printf '%s\n' '2'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:internal'
+ printf '%s\n' '5'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:serve'
+ printf '%s\n' '6'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:s'
+ printf '%s\n' '6'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '0:help'
+ printf '%s\n' '9'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '2:add'
+ printf '%s\n' '3'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '2:help'
+ printf '%s\n' '4'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:run'
+ printf '%s\n' '7'
+ return 0
+ end
+ if test "$argv[1]:$argv[2]" = '6:help'
+ printf '%s\n' '8'
+ return 0
+ end
+ printf '%s\n' '-1'
 end
 
 function _csc_3c7563197e58fdef_commands
@@ -919,4 +1112,4 @@ function _csc_3c7563197e58fdef_filter
     printf '%s\0' "$pending" "$pending_value" "$pending_variadic" $filtered
 end
 
-complete -c 'csc-test-cli' -f -k -a '(_csc_3c7563197e58fdef)'
+complete -f -k -a '(_csc_3c7563197e58fdef)' -- 'csc-test-cli'

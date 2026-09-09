@@ -1,0 +1,17 @@
+Input: csc-test-cli cmd<TAB>--value pr<TAB>
+
+Shell: bash
+
+> csc-test-cli cmd\? --value production ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli cmd? --value production ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli cmd\? --value production ▏

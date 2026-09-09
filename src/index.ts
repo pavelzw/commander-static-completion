@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { extract, hints } from "./model.js";
 import { renderBourne } from "./bourne.js";
 import { renderFish } from "./fish.js";
+import { validateModel, validateText } from "./validation.js";
 
 /** Attach static completion metadata without changing Commander parsing. */
 export function completionHint<T extends Option | Argument>(target: T, hint: CompletionHint): T {
@@ -13,7 +14,7 @@ export function completionHint<T extends Option | Argument>(target: T, hint: Com
   }
   if (
     hint.kind === "choices" &&
-    (!Array.isArray(hint.values) || hint.values.some((value) => typeof value !== "string"))
+    (!Array.isArray(hint.values) || [...hint.values].some((value) => typeof value !== "string"))
   ) {
     throw new TypeError("Completion choices must be an array of strings.");
   }
@@ -31,15 +32,14 @@ export function generateCompletion(
 ): string {
   if (!["bash", "zsh", "fish"].includes(shell))
     throw new Error(`Unsupported shell: ${shell}. Expected bash, zsh, or fish.`);
-  // oxlint-disable-next-line no-control-regex -- Reject control characters in executable names.
-  if (typeof executable !== "string" || !executable || /[\s\x00-\x1f\x7f]/u.test(executable)) {
-    throw new TypeError(
-      "Provide a nonempty executable name without whitespace or control characters.",
-    );
+  validateText(executable, "executable name", shell);
+  if (/\s/u.test(executable)) {
+    throw new TypeError("Provide an executable name without whitespace.");
   }
   const name =
     "_csc_" + createHash("sha256").update(`${shell}:${executable}`).digest("hex").slice(0, 16);
   const nodes = extract(program);
+  validateModel(nodes, shell);
   return shell === "fish"
     ? renderFish(nodes, executable, name)
     : renderBourne(nodes, executable, name, shell);

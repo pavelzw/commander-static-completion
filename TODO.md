@@ -70,9 +70,9 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
       `COMP_WORDBREAKS`; establish which configurations are supported.
 - [x] Expand path coverage: relative/absolute paths, `~/`, hidden files, symlinks,
       directories, attached option values, Unicode, and metacharacters.
-- [ ] Define consistent handling of empty choices and control characters. Cover
+- [x] Define consistent handling of empty choices and control characters. Cover
       NUL rejection and Fish's tab/newline restrictions; document filename limitations.
-- [ ] Add literal-name regressions for wildcard characters, quotes, backslashes,
+- [x] Add literal-name regressions for wildcard characters, quotes, backslashes,
       and shell substitution syntax in names, aliases, choices, and executable names.
 - [ ] Test multiple generated CLIs loaded together, sourcing scripts repeatedly,
       existing completion registrations, and common user shell options. Avoid stale

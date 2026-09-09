@@ -4,6 +4,11 @@
 
 ### Fixed
 
+- Bash and Zsh recognize previously inserted quoted command names, aliases, and flags.
+- Fish preserves literal backslashes in command dispatch and registers executable
+  names without interpreting them as shell patterns.
+- Generation rejects empty choice values and C0/C1 control characters in insertable
+  text consistently across shells; empty choice lists remain valid.
 - Bash completion handles byte cursor offsets before 4.3 and character offsets
   in newer versions, fixing completion after non-ASCII input in UTF-8 locales.
 - Fish completes unquoted `~/` paths while preserving literal quoted/escaped tildes.
