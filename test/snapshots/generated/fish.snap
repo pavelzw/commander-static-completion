@@ -1112,4 +1112,6 @@ function _csc_3c7563197e58fdef_filter
     printf '%s\0' "$pending" "$pending_value" "$pending_variadic" $filtered
 end
 
+# Replace this command's registration; leave other commands untouched.
+complete -e -- 'csc-test-cli'
 complete -f -k -a '(_csc_3c7563197e58fdef)' -- 'csc-test-cli'

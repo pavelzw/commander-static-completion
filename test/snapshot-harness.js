@@ -37,7 +37,15 @@ export async function capture(
   shell,
   program,
   input,
-  { executable = executables[shell], timeoutMs = 15000, bashWordBreaks, pathFixture = false } = {},
+  {
+    executable = executables[shell],
+    timeoutMs = 15000,
+    bashWordBreaks,
+    pathFixture = false,
+    preload = [],
+    shellSetup = "",
+    shellCheck = "",
+  } = {},
 ) {
   assert.ok(["bash", "zsh", "fish"].includes(shell), `Unsupported shell: ${shell}`);
   const cwd = mkdtempSync(join(tmpdir(), "csc-snapshot-"));
@@ -78,7 +86,13 @@ export async function capture(
       symlinkSync("nested directory", join(cwd, "linked-directory"));
       symlinkSync("missing", join(cwd, "broken-link"));
     }
-    const completion = generateCompletion(program, { shell });
+    const completion = [...preload, program]
+      .map((definition, index) => {
+        const filename = `completion-${index}`;
+        writeFileSync(join(cwd, filename), generateCompletion(definition, { shell }));
+        return `source ./${filename}`;
+      })
+      .join("\n");
     let setup, args;
     const ready = "\\033]777;CSC_READY\\007";
     const done = "\\033]777;CSC_DONE\\007";
@@ -95,10 +109,11 @@ bind 'set enable-bracketed-paste off'
 bind 'set show-all-if-ambiguous off'
 bind 'set page-completions off'
 bind 'set completion-query-items 0'
-_mark() { [[ $COMP_WORDBREAKS == "$_csc_word_breaks" ]] || printf changed > word-breaks-changed; printf '${done}'; }
+_mark() { ${shellCheck}\n[[ $COMP_WORDBREAKS == "$_csc_word_breaks" ]] || printf changed > word-breaks-changed; printf '${done}'; }
 bind -x '"\\C-x\\C-g":_mark'
 csc-test-cli() { printf invoked > invoked; }
 PATH=/nonexistent
+${shellSetup}
 `;
       args = `--noprofile --rcfile ./setup -i`;
     } else if (shell === "zsh") {
@@ -112,11 +127,12 @@ setopt NO_BEEP
 unsetopt AUTO_MENU MENU_COMPLETE
 bindkey -e
 zstyle ':completion:*' list-colors ''
-_mark() { printf '${done}'; }
+_mark() { ${shellCheck}\nprintf '${done}'; }
 zle -N _mark
 bindkey '^X^G' _mark
 csc-test-cli() { printf invoked > invoked; }
 PATH=/nonexistent
+${shellSetup}
 `;
       args = `-f -i`;
     } else {
@@ -128,9 +144,11 @@ set -g fish_key_bindings fish_default_key_bindings
 function fish_prompt; printf '> '; end
 function fish_right_prompt; end
 function fish_title; end
-bind ctrl-x,ctrl-g "printf '${done}'"
+function _mark; ${shellCheck}\nprintf '${done}'; end
+bind ctrl-x,ctrl-g _mark
 function csc-test-cli; printf invoked > invoked; end
 set -gx PATH /nonexistent
+${shellSetup}
 printf '${ready}'
 `;
       args = `--no-config --interactive --init-command 'source ./setup'`;
@@ -206,6 +224,13 @@ exit 0
       false,
       "Completion changed COMP_WORDBREAKS",
     );
+    if (existsSync(join(cwd, "state-before"))) {
+      assert.equal(
+        readFileSync(join(cwd, "state-after"), "utf8"),
+        readFileSync(join(cwd, "state-before"), "utf8"),
+        "Completion changed shell state",
+      );
+    }
     let transcript =
       shell === "fish" ? result.stdout : result.stdout.split("\x1b]777;CSC_DONE\x07")[0];
     // bind -x adds a newline on Bash 3.2, or clears the input line on Bash 5,

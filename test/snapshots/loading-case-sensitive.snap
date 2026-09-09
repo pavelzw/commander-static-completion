@@ -1,0 +1,17 @@
+Input: alpha-cli --VALUE alpha<TAB>
+
+Shell: bash
+
+> alpha-cli --VALUE alpha▏
+
+---
+
+Shell: zsh
+
+> alpha-cli --VALUE alpha▏
+
+---
+
+Shell: fish
+
+> alpha-cli --VALUE alpha▏

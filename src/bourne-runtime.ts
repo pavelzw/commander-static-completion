@@ -1,9 +1,10 @@
 // Shell source is kept in TypeScript so tsc produces a self-contained package.
 export function bourneRuntime(shell: "bash" | "zsh"): string {
-  return `${filterRuntime}\n${shell === "bash" ? bashDecode : ""}__PREFIX__() {
+  return `${filterRuntime}\n${shell === "bash" ? bashDecode + bashWrapper : ""}__PREFIX__${shell === "bash" ? "_complete" : ""}() {
 ${shell === "zsh" ? zshInput : bashInput}
   local state=0 position=0 operands=0 end=0 pending= pending_value=-1 pending_variadic=0
   local passthrough positional negative default_command consume join_next=0
+  # Isolate regex checks below: Bash/Zsh otherwise overwrite caller match variables.
   local number_pattern='^-([0-9]+|[0-9]*[.][0-9]+)(e[+-]?[0-9]+)?$'
   local combine mode value=-1 variadic=0 next kind word current flag rest attached
   local i j count=0 candidate lead= cluster_prefix= raw_current="\${COMP_WORDS[COMP_CWORD]}"
@@ -79,7 +80,7 @@ ${shell === "zsh" ? zshInput : bashInput}
   done
 
   value=-1
-  if [[ -n $pending ]] && { [[ $pending == required || $current != -* || $current == - ]] || { ((negative)) && [[ $current =~ $number_pattern ]]; }; }; then
+  if [[ -n $pending ]] && { [[ $pending == required || $current != -* || $current == - ]] || { ((negative)) && ( [[ $current =~ $number_pattern ]] ); }; }; then
     value=$pending_value
   elif (( ! end )) && [[ $current == --*=* ]]; then
     __PREFIX___option "\${current%%=*}"
@@ -140,6 +141,21 @@ ${shell === "bash" ? bashFiles : zshOutput}
 `;
 }
 
+// Bash 3.2 has no function-local shell options. Keep a small outer wrapper so
+// every scanner return restores the caller's options, including early exits.
+const bashWrapper = `__PREFIX__() {
+  local _csc_nounset=0 _csc_nocasematch=0 _csc_status=0
+  case $- in *u*) _csc_nounset=1 ;; esac
+  if shopt -q nocasematch; then _csc_nocasematch=1; fi
+  set +u
+  shopt -u nocasematch
+  if __PREFIX___complete "$@"; then :; else _csc_status=$?; fi
+  if ((_csc_nocasematch)); then shopt -s nocasematch; fi
+  if ((_csc_nounset)); then set -u; fi
+  return "$_csc_status"
+}
+`;
+
 const bashFiles = String.raw`  if [[ $kind == file || $kind == directory ]]; then
     local action=file search=$current
     # compgen expands a leading tilde even when the user quoted or escaped it.
@@ -153,8 +169,9 @@ const bashFiles = String.raw`  if [[ $kind == file || $kind == directory ]]; the
       if [[ -n $COMP_LINE && -d $candidate && $candidate != */ ]]; then candidate+=/; fi
       COMPREPLY+=("$lead$candidate")
     done < <(compgen -A "$action" -- "$search")
-    compopt -o filenames 2>/dev/null || :
-    if ((__DOLLAR__{#COMPREPLY[@]} == 1)) && [[ __DOLLAR__{COMPREPLY[0]} == */ ]]; then
+    # compopt is a Bash 4+ builtin. Never resolve an external command on 3.2.
+    if ((BASH_VERSINFO[0] >= 4)); then compopt -o filenames 2>/dev/null || :; fi
+    if ((BASH_VERSINFO[0] >= 4 && __DOLLAR__{#COMPREPLY[@]} == 1)) && [[ __DOLLAR__{COMPREPLY[0]} == */ ]]; then
       compopt -o nospace 2>/dev/null || :
     fi
   fi
@@ -165,7 +182,7 @@ const bashFiles = String.raw`  if [[ $kind == file || $kind == directory ]]; the
       COMPREPLY[j]=__DOLLAR__{COMPREPLY[j]#"$readline_prefix"}
     done
   fi
-  if [[ $kind != file && $kind != directory && -n $COMP_LINE ]] && compopt -o noquote +o filenames 2>/dev/null; then
+  if ((BASH_VERSINFO[0] >= 4)) && [[ $kind != file && $kind != directory && -n $COMP_LINE ]] && compopt -o noquote +o filenames 2>/dev/null; then
     # Quote static words ourselves: newer Readline can preserve expansion syntax
     # even with filename quoting enabled. Bash 3.2 uses registration-time quoting.
     for ((j=0; j<__DOLLAR__{#COMPREPLY[@]}; j++)); do
@@ -306,7 +323,7 @@ const filterRuntime = `__PREFIX___filter() {
   for ((p=0; p<count-1; p++)); do
     token=\${tokens[p]}
     if [[ -n $pending ]]; then
-      if [[ $pending == required || $token != -* || $token == - ]] || { ((negative)) && [[ $token =~ $number_pattern ]]; }; then
+      if [[ $pending == required || $token != -* || $token == - ]] || { ((negative)) && ( [[ $token =~ $number_pattern ]] ); }; then
         if ((pending_variadic)); then pending=optional; else pending=; fi
         continue
       fi
@@ -354,7 +371,7 @@ const filterRuntime = `__PREFIX___filter() {
       break
     fi
   done
-  if [[ -n $pending ]] && { [[ $pending == required || $current != -* || $current == - ]] || { ((negative)) && [[ $current =~ $number_pattern ]]; }; }; then
+  if [[ -n $pending ]] && { [[ $pending == required || $current != -* || $current == - ]] || { ((negative)) && ( [[ $current =~ $number_pattern ]] ); }; }; then
     # Ancestor options consume values before a child ever sees the remaining words.
     tokens=("$current"); count=1
   else

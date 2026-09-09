@@ -1,0 +1,17 @@
+Input: alpha-cli --file two<TAB>
+
+Shell: bash
+
+> alpha-cli --file two\ words.json ▏
+
+---
+
+Shell: zsh
+
+> alpha-cli --file two\ words.json ▏
+
+---
+
+Shell: fish
+
+> alpha-cli --file two\ words.json ▏

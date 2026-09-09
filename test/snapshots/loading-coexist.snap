@@ -1,0 +1,17 @@
+Input: beta-cli --value beta<TAB>
+
+Shell: bash
+
+> beta-cli --value beta-only ▏
+
+---
+
+Shell: zsh
+
+> beta-cli --value beta-only ▏
+
+---
+
+Shell: fish
+
+> beta-cli --value beta-only ▏

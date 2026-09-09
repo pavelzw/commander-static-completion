@@ -51,8 +51,8 @@
     "validate": "npm run format:check && npm run lint && npm run check && npm run check:release && npm test && npm run test:package",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
-    "test:snapshots": "npm run build && node --test test/snapshots.test.js test/generated-snapshots.test.js",
-    "test:snapshots:update": "npm run build && UPDATE_SNAPSHOTS=1 node --test test/snapshots.test.js test/generated-snapshots.test.js",
+    "test:snapshots": "npm run build && node --test test/snapshots.test.js test/generated-snapshots.test.js test/loading.test.js",
+    "test:snapshots:update": "npm run build && UPDATE_SNAPSHOTS=1 node --test test/snapshots.test.js test/generated-snapshots.test.js test/loading.test.js",
     "check:release": "tsx scripts/check-release.ts",
     "test:release": "tsx --test test/release.test.ts"
   },

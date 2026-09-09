@@ -246,7 +246,7 @@ _csc_3c3e584a1e7b51e2_filter() {
   for ((p=0; p<count-1; p++)); do
     token=${tokens[p]}
     if [[ -n $pending ]]; then
-      if [[ $pending == required || $token != -* || $token == - ]] || { ((negative)) && [[ $token =~ $number_pattern ]]; }; then
+      if [[ $pending == required || $token != -* || $token == - ]] || { ((negative)) && ( [[ $token =~ $number_pattern ]] ); }; then
         if ((pending_variadic)); then pending=optional; else pending=; fi
         continue
       fi
@@ -294,7 +294,7 @@ _csc_3c3e584a1e7b51e2_filter() {
       break
     fi
   done
-  if [[ -n $pending ]] && { [[ $pending == required || $current != -* || $current == - ]] || { ((negative)) && [[ $current =~ $number_pattern ]]; }; }; then
+  if [[ -n $pending ]] && { [[ $pending == required || $current != -* || $current == - ]] || { ((negative)) && ( [[ $current =~ $number_pattern ]] ); }; }; then
     # Ancestor options consume values before a child ever sees the remaining words.
     tokens=("$current"); count=1
   else
@@ -311,6 +311,7 @@ _csc_3c3e584a1e7b51e2() {
   COMP_WORDS[COMP_CWORD]=${(Q)PREFIX}
   local state=0 position=0 operands=0 end=0 pending= pending_value=-1 pending_variadic=0
   local passthrough positional negative default_command consume join_next=0
+  # Isolate regex checks below: Bash/Zsh otherwise overwrite caller match variables.
   local number_pattern='^-([0-9]+|[0-9]*[.][0-9]+)(e[+-]?[0-9]+)?$'
   local combine mode value=-1 variadic=0 next kind word current flag rest attached
   local i j count=0 candidate lead= cluster_prefix= raw_current="${COMP_WORDS[COMP_CWORD]}"
@@ -386,7 +387,7 @@ _csc_3c3e584a1e7b51e2() {
   done
 
   value=-1
-  if [[ -n $pending ]] && { [[ $pending == required || $current != -* || $current == - ]] || { ((negative)) && [[ $current =~ $number_pattern ]]; }; }; then
+  if [[ -n $pending ]] && { [[ $pending == required || $current != -* || $current == - ]] || { ((negative)) && ( [[ $current =~ $number_pattern ]] ); }; }; then
     value=$pending_value
   elif (( ! end )) && [[ $current == --*=* ]]; then
     _csc_3c3e584a1e7b51e2_option "${current%%=*}"

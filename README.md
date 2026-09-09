@@ -122,6 +122,27 @@ For Fish, generate with `shell: 'fish'` and save the output as
 `~/.config/fish/completions/mycli.fish` (or the `completions` directory beneath
 your custom Fish configuration directory). Fish loads it automatically.
 
+Generated scripts own the exact registration for their executable. Sourcing one
+replaces that registration, including a pre-existing completion from another
+provider for the same name. Registrations for other executables are preserved.
+Repeated sourcing is safe and does not accumulate Fish completion entries.
+On Fish 4.0, native erase retains explicit wrapper relationships (`complete -w`)
+and separate wildcard rules, so their suggestions can still apply. Remove those
+explicitly when migrating away from a wrapping provider. Fish 4.8 removes the
+target's wrappers on erase and treats `-c` names literally. Definitions for other
+commands, including wrapper targets, remain unchanged on both versions.
+After changing your command tree, regenerate and source the new script in an
+existing shell; new shells load the updated installed file normally. Zsh caches
+autoloaded functions, so merely overwriting an installed file does not refresh
+an already loaded completion in the current shell.
+
+Bash temporarily disables `nounset` and `nocasematch` while scanning, then restores
+them even on early returns. Commander names remain case-sensitive. Other tested
+settings include `extglob`, `nullglob`, `noglob`, custom `IFS`, and Zsh's
+`SH_WORD_SPLIT`, `KSH_ARRAYS`, and `NO_UNSET`. Regex checks preserve the caller's
+match variables. The shell's completion outputs (such as Bash's `COMPREPLY`)
+remain part of its normal completion protocol.
+
 The normal CLI entry point can import `program` and call `program.parse()`.
 Generation never parses arguments or invokes action handlers. Defining the
 command tree should itself avoid application startup side effects.
@@ -346,7 +367,8 @@ npm run build
 node --test test/generated-snapshots.test.js
 ```
 
-The `test:snapshots` and `test:snapshots:update` commands cover both generated
+The `test:snapshots` and `test:snapshots:update` commands also cover the persistent
+shell and `loading-*` snapshot tests in `test/loading.test.js`, as well as generated
 scripts and interactive screens. To update only the generated scripts:
 
 ```sh

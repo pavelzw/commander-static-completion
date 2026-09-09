@@ -1,0 +1,17 @@
+Input: alpha-cli --optional -1<TAB>
+
+Shell: bash
+
+> alpha-cli --optional -123 ▏
+
+---
+
+Shell: zsh
+
+> alpha-cli --optional -123 ▏
+
+---
+
+Shell: fish
+
+> alpha-cli --optional -123 ▏

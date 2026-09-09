@@ -74,13 +74,14 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
       NUL rejection and Fish's tab/newline restrictions; document filename limitations.
 - [x] Add literal-name regressions for wildcard characters, quotes, backslashes,
       and shell substitution syntax in names, aliases, choices, and executable names.
-- [ ] Test multiple generated CLIs loaded together, sourcing scripts repeatedly,
+- [x] Test multiple generated CLIs loaded together, sourcing scripts repeatedly,
       existing completion registrations, and common user shell options. Avoid stale
       or duplicate completions after regeneration.
 - [x] Add Zsh autoload support (`#compdef`/`fpath`) alongside the current sourced
       script workflow, with installation tests.
-- [ ] Verify shell state is preserved after completion and command/Node execution
-      remains unnecessary in every native integration test.
+- [x] Verify caller variables, shell settings, and unrelated registrations in
+      persistent-shell and native loading tests, with CLI/Node execution guards.
+- [ ] Extend shell-state and execution guards to the remaining native test harnesses.
 - [ ] Make remaining harness failures portable and actionable: timeouts, shell availability,
       executable overrides (including Bash), and pseudo-terminal cleanup.
 - [x] Add native interactive screen snapshots for Bash, Zsh, and Fish, with shared

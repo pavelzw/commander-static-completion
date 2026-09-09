@@ -1,0 +1,17 @@
+Input: alpha-cli --value missing<TAB>
+
+Shell: bash
+
+> alpha-cli --value missing▏
+
+---
+
+Shell: zsh
+
+> alpha-cli --value missing▏
+
+---
+
+Shell: fish
+
+> alpha-cli --value missing▏

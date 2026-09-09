@@ -4,6 +4,13 @@
 
 ### Fixed
 
+- Fish reloads replace the target command's registration without accumulating
+  duplicate entries or retaining completion rules from a previous provider.
+- Bash completion tolerates `nounset` and preserves caller options, while
+  keeping command matching case-sensitive with `nocasematch` enabled.
+- Bash 3.2 no longer attempts to run an external `compopt` command.
+- Negative-number checks preserve caller regex-match variables in Bash and Zsh.
+
 - Bash and Zsh recognize previously inserted quoted command names, aliases, and flags.
 - Fish preserves literal backslashes in command dispatch and registers executable
   names without interpreting them as shell patterns.
