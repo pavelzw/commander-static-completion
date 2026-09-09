@@ -34,6 +34,45 @@ interface CommanderInternals {
   _getHelpOption(): Option | null;
 }
 
+const definitions = new WeakMap<Command, Command>();
+
+/** Record parser metadata for an executable declaration without changing dispatch. */
+export function setDefinition<T extends Command>(target: T, definition: Command): T {
+  if (
+    !target ||
+    typeof target.createHelp !== "function" ||
+    !definition ||
+    typeof definition.createHelp !== "function"
+  ) {
+    throw new TypeError("Completion definitions require two Commander commands.");
+  }
+  validateDefinition(target, definition);
+  definitions.set(target, definition);
+  return target;
+}
+
+function validateDefinition(target: Command, definition: Command) {
+  if (!(target as Command & CommanderInternals)._executableHandler) {
+    throw new TypeError(
+      `Completion definition target ${target.name()} must be an executable subcommand.`,
+    );
+  }
+  if (
+    definition === target ||
+    definition.parent ||
+    (definition as Command & CommanderInternals)._executableHandler
+  ) {
+    throw new TypeError(
+      `Completion definition for ${target.name()} must be an independent, in-process root Command.`,
+    );
+  }
+  if (target.options.length || target.commands.length) {
+    throw new TypeError(
+      `Executable subcommand ${target.name()} has conflicting parser definitions; put options and children on its completion definition.`,
+    );
+  }
+}
+
 // Private Commander access is confined to this compatibility adapter.
 export function checkCompatibility(command: Command) {
   const internal = command as Command & CommanderInternals;
@@ -42,8 +81,10 @@ export function checkCompatibility(command: Command) {
       "Legacy wildcard subcommands are unsupported; use { isDefault: true } with an ordinary command name.",
     );
   }
-  if (internal._executableHandler) {
-    throw new Error(`Supply an in-process definition for executable subcommand ${command.name()}.`);
+  if (internal._executableHandler && !definitions.has(command)) {
+    throw new Error(
+      `Supply a definition with completionDefinition() for executable subcommand ${command.name()}.`,
+    );
   }
 }
 
@@ -64,12 +105,30 @@ export function valueSpec(target: Option | Argument): CompletionHint {
 
 export function extract(program: Command): ModelCommand[] {
   const nodes: ModelCommand[] = [];
+  const active = new Set<Command>();
   function visit(
     command: Command,
     inherited: ModelOption[] = [],
     ancestorDigit = false,
   ): ModelCommand {
     checkCompatibility(command);
+    const definition = definitions.get(command);
+    if (definition) {
+      validateDefinition(command, definition);
+      if (inherited.some((option) => option.flags.some((flag) => /^-\d$/u.test(flag)))) {
+        throw new Error(
+          `Executable subcommand ${command.name()} has active ancestor digit flags; use enablePositionalOptions() on their declaring commands to separate the parsers.`,
+        );
+      }
+      // The external parser is a fresh root, without the declaration's ancestors.
+      ancestorDigit = false;
+      command = definition;
+      checkCompatibility(command);
+    }
+    if (active.has(command)) {
+      throw new TypeError(`Cyclic completion definition at ${command.name()}.`);
+    }
+    active.add(command);
     const internal = command as Command & CommanderInternals;
     const hasDigit =
       ancestorDigit || command.options.some((option) => /^-\d$/u.test(option.short ?? ""));
@@ -207,6 +266,7 @@ export function extract(program: Command): ModelCommand[] {
         `Default subcommand ${internal._defaultCommandName} is missing from ${command.name()}.`,
       );
     }
+    active.delete(command);
     return node;
   }
   visit(program);

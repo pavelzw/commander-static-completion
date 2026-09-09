@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- `completionDefinition()` attaches standalone Commander parser definitions to
+  executable subcommands without changing dispatch or running their executables.
+  Includes validation, native Bash/Fish/Zsh snapshots, and a TypeScript example.
+
 ### Fixed
 
 - Fish reloads replace the target command's registration without accumulating

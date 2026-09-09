@@ -206,10 +206,62 @@ the end can consume the next word (`-vo auto`). Required attached values
 (`-orproduction`) and long assignments (`--optional=auto`) still work. Each
 option retains its owning command's setting when inherited by a subcommand.
 
-The generators currently reject executable subcommands and legacy `*` fallback
-commands. Use `{ isDefault: true }` for default dispatch.
-Supply ordinary in-process subcommand definitions for generation instead.
-These checks use a small isolated Commander compatibility adapter.
+Executable subcommands require an explicit `completionDefinition()` (see below).
+Legacy `*` fallback commands are rejected; use `{ isDefault: true }` for default
+dispatch. These checks use a small isolated Commander compatibility adapter.
+
+### Executable subcommands
+
+Attach the standalone parser definition to Commander's executable declaration:
+
+```ts
+import { Command, Option } from "commander";
+import { completionDefinition, generateCompletion } from "commander-static-completion";
+
+const program = new Command("mycli").enablePositionalOptions();
+program.command("deploy", "Deploy remotely", { executableFile: "mycli-deploy" });
+// This overload returns the parent, not the new subcommand.
+const external = program.commands[0].alias("d");
+const deploy = new Command("mycli-deploy").addOption(
+  new Option("--target <target>").choices(["staging", "production"]),
+);
+completionDefinition(external, deploy);
+process.stdout.write(generateCompletion(program, { shell: "bash" }));
+```
+
+`completionDefinition(target, definition)` returns `target` and leaves its
+executable dispatch unchanged. The declaration supplies its name, aliases,
+visibility, description, and default-command status. The independent definition
+supplies options, positional arguments, nested commands, help, and parser settings.
+Its root name may differ from the dispatch name. An argument signature on the
+executable declaration is display metadata; define the actual arguments on the
+supplied parser. Options or child commands on the declaration are rejected as
+conflicting definitions.
+
+Definitions are read when generating, so finish configuring them before calling
+`generateCompletion()`. A definition can be shared between declarations; calling
+`completionDefinition()` again replaces its attachment. The supplied root must
+remain unattached to any Commander parent. Missing definitions, invalid targets,
+and cycles produce diagnostics, including in nested executable subcommands.
+Generation never imports executable paths, scrapes help, calls `parse()`, or runs
+actions. Share a side-effect-free definition factory with the executable to keep
+its parser and completions in sync.
+
+Use `enablePositionalOptions()` on the parent to give the external parser its own
+option scope. Without it, parent options remain active, as in Commander. Active
+ancestor digit flags such as `-1` across an executable boundary are diagnosed:
+the independent parsers disagree about negative-number values, which the current
+scanner cannot represent. Positional option boundaries avoid this ambiguity.
+Custom argument rewriting by a launcher still cannot be inferred.
+
+The runnable TypeScript example in [`examples/executable/`](examples/executable/)
+shares a definition factory between the child executable and completion builder:
+
+```sh
+npm run build
+npx tsx examples/executable/cli.ts d --target production
+npx tsx examples/executable/cli.ts completions bash > mycli.bash
+```
 
 Implicit `help` suggests one immediate subcommand, including aliases. Use
 `mycli remote help add` for a nested command; Commander does not interpret

@@ -43,7 +43,7 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
       correct boundary.
 - [x] Support default subcommands without misclassifying positional arguments.
 - [x] Support `combineFlagAndOptionalValue(false)`.
-- [ ] Design an explicit way to supply definitions for executable subcommands;
+- [x] Design an explicit way to supply definitions for executable subcommands;
       do not launch those executables during completion or scrape their help text.
 - [x] Audit all Commander parsing settings that affect completion. For settings
       we cannot model, provide a specific diagnostic instead of silently guessing.

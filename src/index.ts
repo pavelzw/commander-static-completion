@@ -2,7 +2,7 @@ import type { Argument, Command, Option } from "commander";
 import type { CompletionHint, GenerateOptions } from "./types.js";
 export type { CompletionHint, GenerateOptions, Shell } from "./types.js";
 import { createHash } from "node:crypto";
-import { extract, hints } from "./model.js";
+import { extract, hints, setDefinition } from "./model.js";
 import { renderBourne } from "./bourne.js";
 import { renderFish } from "./fish.js";
 import { validateModel, validateText } from "./validation.js";
@@ -23,6 +23,15 @@ export function completionHint<T extends Option | Argument>(target: T, hint: Com
     hint.kind === "choices" ? { kind: hint.kind, values: [...hint.values] } : { kind: hint.kind },
   );
   return target;
+}
+
+/**
+ * Supply the standalone parser definition for an executable subcommand.
+ * Retains the declaration's name, aliases, visibility, and description. The
+ * definition is read at generation time; neither command is parsed or executed.
+ */
+export function completionDefinition<T extends Command>(target: T, definition: Command): T {
+  return setDefinition(target, definition);
 }
 
 /** Generate a standalone shell script from a fully configured command tree. */

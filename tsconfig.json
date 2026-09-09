@@ -7,5 +7,11 @@
     "noEmit": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["src/**/*.ts", "type-tests/**/*.ts", "scripts/**/*.ts", "test/release.test.ts"]
+  "include": [
+    "src/**/*.ts",
+    "examples/**/*.ts",
+    "type-tests/**/*.ts",
+    "scripts/**/*.ts",
+    "test/release.test.ts"
+  ]
 }

@@ -1,5 +1,9 @@
 import { Argument, Command, Option } from "commander";
-import { completionHint, generateCompletion } from "commander-static-completion";
+import {
+  completionHint,
+  completionDefinition,
+  generateCompletion,
+} from "commander-static-completion";
 import type { CompletionHint, GenerateOptions, Shell } from "commander-static-completion";
 
 const hint: CompletionHint = { kind: "choices", values: ["fast"] as const };
@@ -17,3 +21,8 @@ for (const shell of ["bash", "zsh", "fish"] satisfies Shell[]) {
 generateCompletion(new Command("demo"), { shell: "powershell" });
 // @ts-expect-error Choices must remain strings.
 completionHint(new Option("--mode"), { kind: "choices", values: [1] });
+
+const externalRoot = new Command("external-root");
+externalRoot.command("external", "external executable");
+completionDefinition(externalRoot.commands[0], new Command("definition").option("--external-flag"));
+generateCompletion(externalRoot, { shell: "bash" });

@@ -1,0 +1,17 @@
+Input: csc-test-cli --target pr<TAB>
+
+Shell: bash
+
+> csc-test-cli --target production ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli --target production ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli --target production ▏
