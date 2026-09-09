@@ -1,0 +1,17 @@
+Input: csc-test-cli rem add<LEFT:4><TAB>
+
+Shell: bash
+
+> csc-test-cli remote▏ add
+
+---
+
+Shell: fish
+
+> csc-test-cli remote ▏add
+
+---
+
+Shell: zsh
+
+> csc-test-cli remote ▏ add

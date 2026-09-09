@@ -1,7 +1,7 @@
 // Shell source is kept in TypeScript so tsc produces a self-contained package.
 export function bourneRuntime(shell: "bash" | "zsh"): string {
   return `${filterRuntime}\n__PREFIX__() {
-${shell === "zsh" ? zshInput : ""}
+${shell === "zsh" ? zshInput : bashInput}
   local state=0 position=0 operands=0 end=0 pending= pending_value=-1 pending_variadic=0
   local passthrough positional negative default_command consume join_next=0
   local number_pattern='^-([0-9]+|[0-9]*[.][0-9]+)(e[+-]?[0-9]+)?$'
@@ -201,6 +201,25 @@ const zshInput = `  emulate -L ksh
   local COMP_CWORD=$((CURRENT - 1)) COMP_WORDBREAKS=
   # Ignore text after the cursor in the current token.
   COMP_WORDS[COMP_CWORD]=\${(Q)PREFIX}`;
+
+// Readline replaces only the part before point, but COMP_WORDS includes the
+// entire token (including closing quotes). Match its literal boundaries without
+// evaluating shell syntax, then scan and quote only the prefix being replaced.
+const bashInput = String.raw`  local -a COMP_WORDS=("__DOLLAR__{COMP_WORDS[@]}")
+  if [[ -n $COMP_LINE && -n $COMP_POINT ]]; then
+    local before after
+    # COMP_POINT counts bytes, whereas substring offsets can count characters.
+    printf -v before '%.*s' "$COMP_POINT" "$COMP_LINE"
+    after=__DOLLAR__{COMP_LINE#"$before"}
+    local token=__DOLLAR__{COMP_WORDS[COMP_CWORD]} prefix suffix cut
+    for ((cut=__DOLLAR__{#token}; cut>=0; cut--)); do
+      prefix=__DOLLAR__{token:0:cut}; suffix=__DOLLAR__{token:cut}
+      if [[ $before == *"$prefix" && $after == "$suffix"* ]]; then
+        COMP_WORDS[COMP_CWORD]=$prefix
+        break
+      fi
+    done
+  fi`.replaceAll("__DOLLAR__", "$");
 
 const zshOutput = `  emulate -L zsh
   # Restore compinit options before calling native completion helpers.

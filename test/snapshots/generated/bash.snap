@@ -291,7 +291,21 @@ _csc_5bf334227f4327fd_filter() {
 }
 
 _csc_5bf334227f4327fd() {
-
+  local -a COMP_WORDS=("${COMP_WORDS[@]}")
+  if [[ -n $COMP_LINE && -n $COMP_POINT ]]; then
+    local before after
+    # COMP_POINT counts bytes, whereas substring offsets can count characters.
+    printf -v before '%.*s' "$COMP_POINT" "$COMP_LINE"
+    after=${COMP_LINE#"$before"}
+    local token=${COMP_WORDS[COMP_CWORD]} prefix suffix cut
+    for ((cut=${#token}; cut>=0; cut--)); do
+      prefix=${token:0:cut}; suffix=${token:cut}
+      if [[ $before == *"$prefix" && $after == "$suffix"* ]]; then
+        COMP_WORDS[COMP_CWORD]=$prefix
+        break
+      fi
+    done
+  fi
   local state=0 position=0 operands=0 end=0 pending= pending_value=-1 pending_variadic=0
   local passthrough positional negative default_command consume join_next=0
   local number_pattern='^-([0-9]+|[0-9]*[.][0-9]+)(e[+-]?[0-9]+)?$'

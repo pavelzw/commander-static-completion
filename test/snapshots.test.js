@@ -1,5 +1,7 @@
 import { test } from "node:test";
-import { assertSnapshot } from "./snapshot-assert.js";
+import { execFileSync } from "node:child_process";
+import { assertSnapshot, assertShellSnapshot } from "./snapshot-assert.js";
+import { executables } from "./helpers.js";
 import {
   fixture,
   defaultSnapshotFixture,
@@ -49,9 +51,27 @@ const cases = [
   ["escaped-choice", "csc-test-cli deploy --target two\\ w<TAB>"],
   ["quoted-file", 'csc-test-cli deploy --config "two<TAB>'],
   ["cursor-middle", "csc-test-cli deploy --target pr --no-cache<LEFT:11><TAB>"],
+  ["editing-command-suffix", "csc-test-cli deploy<LEFT:4><TAB>"],
+  ["editing-choice-suffix", "csc-test-cli deploy --target production<LEFT:8><TAB>"],
+  ["editing-unmatched-suffix", "csc-test-cli deploy --target prXYZ<LEFT:3><TAB>"],
+  ["editing-assignment-suffix", "csc-test-cli deploy --target=production<LEFT:8><TAB>"],
+  ["editing-later-command", "csc-test-cli rem add<LEFT:4><TAB>"],
+  ["editing-later-value", "csc-test-cli deploy --target pr --color blue<LEFT:13><TAB>"],
+  ["editing-empty-assignment", "csc-test-cli deploy --color=<TAB><TAB>"],
+  ["editing-empty-quoted-value", 'csc-test-cli deploy --color ""<LEFT><TAB><TAB>'],
+  ["editing-single-quote", "csc-test-cli deploy --target 'two<TAB>"],
+  ["editing-closed-quote", 'csc-test-cli deploy --target "two"<LEFT><TAB>'],
+  ["editing-quoted-suffix", 'csc-test-cli deploy --target "two words"<LEFT:6><TAB>'],
+  ["editing-escaped-file", "csc-test-cli deploy --config two\\ w<TAB>"],
+  ["editing-file-suffix", "csc-test-cli deploy --config two\\ words.json<LEFT:8><TAB>"],
   ["directory", "csc-test-cli deploy --config nest<TAB>"],
   ["ambiguous", "csc-test-cli deploy --color <TAB><TAB>"],
 ];
+const versionedCases = new Set(["editing-empty-quoted-value", "editing-closed-quote"]);
+const bashVersion = execFileSync(executables.bash, ["-c", 'printf "%s" "$BASH_VERSINFO"'], {
+  encoding: "utf8",
+  timeout: 5000,
+}).trim();
 for (const [name, input, makeProgram] of cases) {
   test(`interactive snapshot: ${name}`, async () => {
     const sections = [];
@@ -61,10 +81,15 @@ for (const [name, input, makeProgram] of cases) {
         program.command("tasks");
         program.command("tags");
       }
-      sections.push(`Shell: ${shell}\n\n${await capture(shell, program, input)}`);
+      const label =
+        shell === "bash" && versionedCases.has(name)
+          ? `bash (${bashVersion === "3" ? "3.2" : "4+"})`
+          : shell;
+      sections.push(`Shell: ${label}\n\n${await capture(shell, program, input)}`);
     }
     const actual = `Input: ${input}\n\n${sections.join("\n---\n\n")}`;
     const path = new URL(`./snapshots/${name}.snap`, import.meta.url);
-    assertSnapshot(path, actual);
+    if (versionedCases.has(name)) assertShellSnapshot(path, input, sections);
+    else assertSnapshot(path, actual);
   });
 }

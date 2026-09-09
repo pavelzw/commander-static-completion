@@ -1,0 +1,23 @@
+Input: csc-test-cli deploy --target "two"<LEFT><TAB>
+
+Shell: bash (3.2)
+
+> csc-test-cli deploy --target "two words"▏"
+
+---
+
+Shell: bash (4+)
+
+> csc-test-cli deploy --target "two words" ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli deploy --target "two words" ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli deploy --target "two words ▏"

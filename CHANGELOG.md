@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Bash completion scans only the current token's prefix before the cursor,
+  avoiding incorrect quoting caused by an existing closing quote after the cursor.
+
 ### Added
 
 - Static Bash 3.2+, Fish 4+, and Zsh 5.9+ completions for Commander 14/15.

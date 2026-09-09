@@ -1,0 +1,17 @@
+Input: csc-test-cli deploy<LEFT:4><TAB>
+
+Shell: bash
+
+> csc-test-cli deploy▏ploy
+
+---
+
+Shell: fish
+
+> csc-test-cli deploy ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli deploy ▏

@@ -58,8 +58,11 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
       Verify spaces, quoting, directory suffixes, and trailing-space behavior.
 - [x] Consolidate a shared behavior matrix across shells so new cases exercise
       Bash, Zsh, and Fish consistently.
-- [ ] Exercise cursor-in-the-middle completion, existing suffixes, unfinished
+- [x] Exercise cursor-in-the-middle completion, existing suffixes, unfinished
       quotes, escaped spaces, empty values, and tokens after the cursor.
+- [ ] Evaluate improvements to native editing behavior captured by the snapshots:
+      Bash duplicates existing suffixes by default, and Zsh can insert a space
+      inside an existing closing quote. Preserve shell settings when improving these.
 - [ ] Expand Bash word-break tests for `=`, `:`, assignment boundaries, and custom
       `COMP_WORDBREAKS`; establish which configurations are supported.
 - [ ] Expand path coverage: relative/absolute paths, `~/`, hidden files, symlinks,

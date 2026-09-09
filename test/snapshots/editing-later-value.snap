@@ -1,0 +1,17 @@
+Input: csc-test-cli deploy --target pr --color blue<LEFT:13><TAB>
+
+Shell: bash
+
+> csc-test-cli deploy --target production▏ --color blue
+
+---
+
+Shell: fish
+
+> csc-test-cli deploy --target production ▏--color blue
+
+---
+
+Shell: zsh
+
+> csc-test-cli deploy --target production ▏ --color blue

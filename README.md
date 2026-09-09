@@ -261,6 +261,12 @@ and Zsh sections separated by `---`. Run `npm run test:snapshots` to compare the
 Missing snapshots fail normal tests; updates are disabled in CI. `npm test`
 includes snapshot comparisons automatically.
 
+Two quoted editing cases have separate Bash 3.2 and Bash 4+ sections in the same
+file because their editors produce different output. A local update preserves
+the other Bash version's section; run with `TEST_BASH=/path/to/bash` to check or
+update that version. CI exercises both. When changing a versioned case's input,
+remove its old snapshot and regenerate with both Bash versions.
+
 Full generated-script snapshots live in `test/snapshots/generated/`: `bash.snap`,
 `fish.snap`, and `zsh.snap`. Each file contains the exact, unmodified output from
 `generateCompletion`, including metadata, scanner functions, and shell registration.
@@ -323,6 +329,22 @@ waits for a capture acknowledgement and drains pending redraws, enforces a
 sequences are not serialized; trailing screen padding is trimmed. Shell-specific
 ordering, inserted quoting, and cursor differences remain visible. These snapshots
 cover the configured terminal and fixtures, not every possible shell customization.
+
+The `editing-*` cases exercise completion inside commands, choices, assignments,
+and filenames; existing closing quotes; empty values; escaped spaces; and later
+arguments that must not change the completion context. Together with the original
+quoted-value cases, they cover both unfinished quotes and editing quoted words.
+
+These snapshots also record native editing limitations, not just desirable output.
+With the default Readline settings used here, Bash completes the prefix before the
+cursor and leaves the suffix in place: `de▏ploy` becomes `deploy▏ploy`. Readline's
+[`skip-completed-text` setting](https://www.gnu.org/software/bash/manual/html_node/Readline-Init-File-Syntax.html)
+can change this behavior; generated scripts do not change editor settings.
+Zsh's native `compadd` can insert a space inside an existing closing quote:
+`"two▏"` becomes `"two words ▏"`. Fish replaces the complete token, and its menu
+can display existing quotes alongside candidate text. These behaviors were also
+checked with minimal native completion definitions, independently of the generated
+scanners. Moving to the end of the word before completing avoids the suffix cases.
 
 GitHub Actions runs validation on Linux and macOS with Commander 14 and 15,
 Node 22.12.0, Node 24, and current Node. The matrix includes Bash 3.2 and 5.x,

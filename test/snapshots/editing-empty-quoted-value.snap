@@ -1,0 +1,29 @@
+Input: csc-test-cli deploy --color ""<LEFT><TAB><TAB>
+
+Shell: bash (3.2)
+
+> csc-test-cli deploy --color ""
+blue  red
+> csc-test-cli deploy --color "▏"
+
+---
+
+Shell: bash (4+)
+
+> csc-test-cli deploy --color ""
+blue"  red"
+> csc-test-cli deploy --color "▏"
+
+---
+
+Shell: fish
+
+> csc-test-cli deploy --color "red" ▏
+""red  ""blue
+
+---
+
+Shell: zsh
+
+> csc-test-cli deploy --color "▏"
+blue  red
