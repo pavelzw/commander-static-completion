@@ -19,8 +19,14 @@ function bashComplete(program, words, { cwd, breaks = " \t\n\"'@><=;|&(:" } = {}
     cwd,
     input: `${script}\ncsc-test-cli() { echo 'CLI WAS INVOKED' >&2; return 99; }\nPATH=/nonexistent\nCOMP_WORDS=(${words.map(quote).join(" ")})\nCOMP_CWORD=${words.length - 1}\nCOMP_WORDBREAKS=${quote(breaks)}\n${fn}\nif ((${"${#COMPREPLY[@]}"})); then printf '%s\\0' "${"${COMPREPLY[@]}"}"; fi\n`,
     encoding: "utf8",
+    timeout: 15000,
+    killSignal: "SIGKILL",
   });
-  assert.equal(result.status, 0, result.stderr);
+  assert.equal(
+    result.status,
+    0,
+    `${result.error?.message ?? ""} ${result.stderr}; words=${JSON.stringify(words)}`,
+  );
   assert.equal(result.stderr, "");
   return result.stdout.split("\0").filter(Boolean);
 }
@@ -43,9 +49,15 @@ function otherComplete(shell, program, words, cwd) {
   const result = spawnSync(executables[shell], shell === "fish" ? ["--no-config"] : ["-f"], {
     input,
     encoding: "utf8",
+    timeout: 15000,
+    killSignal: "SIGKILL",
     cwd,
   });
-  assert.equal(result.status, 0, result.stderr);
+  assert.equal(
+    result.status,
+    0,
+    `${result.error?.message ?? ""} ${result.stderr}; words=${JSON.stringify(words)}`,
+  );
   assert.equal(result.stderr, "");
   return result.stdout
     .trimEnd()
