@@ -1,3 +1,4 @@
+import { complete as completeShell } from './helpers.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -8,62 +9,15 @@ import { fixture } from './fixture.js';
 import { generateCompletion } from '../dist/index.js';
 
 const quote = s => "'" + s.replaceAll("'", "'\\''") + "'";
-const fishQuote = s => "'" + s.replaceAll('\\', '\\\\').replaceAll("'", "\\'") + "'";
 const executables = { zsh: process.env.TEST_ZSH ?? 'zsh', fish: process.env.TEST_FISH ?? 'fish' };
 
-function complete(shell, words, cwd) {
-  const script = generateCompletion(fixture(), { shell });
-  let input;
-  if (shell === 'fish') {
-    // Use a fixture name that cannot collide with bundled CLI completions.
-    // Isolate our fixture from bundled/user completions, but retain native helpers.
-    const line = words.map((word, index) => index === words.length - 1 && word === '' ? '' : fishQuote(word)).join(' ');
-    input = `set -g fish_complete_path\n${script}\nfunction csc-test-cli; echo 'CLI WAS INVOKED' >&2; end\nset -gx PATH /nonexistent\ncomplete -C ${fishQuote(line)}\n`;
-  } else {
-    // Test scanner output directly; the separate ZLE test covers native registration.
-    const fn = script.match(/compdef (\w+)/)[1];
-    input = `compdef() { :; }\n${script}\ncompadd() { shift; printf '%s\\n' "$@"; }\ncsc-test-cli() { echo 'CLI WAS INVOKED' >&2; }\nPATH=/nonexistent\nwords=(${words.map(quote).join(' ')})\nCURRENT=${words.length}\nPREFIX=${quote(words.at(-1))}\n${fn}\n`;
-  }
-  const result = spawnSync(executables[shell], shell === 'fish' ? ['--no-config'] : ['-f'], { input, encoding: 'utf8', cwd });
-  assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stderr, '');
-  return result.stdout.trimEnd().split('\n').filter(Boolean).map(line => line.split('\t')[0]);
-}
+const complete = (shell, words, cwd) => completeShell(shell, fixture(), words, { cwd });
 
 for (const shell of ['zsh', 'fish']) {
   test(`${shell}: syntax and completion context`, () => {
     const script = generateCompletion(fixture(), { shell });
     const result = spawnSync(executables[shell], ['-n'], { input: script, encoding: 'utf8' });
     assert.equal(result.status, 0, result.stderr);
-    const cases = [
-      [['csc-test-cli', 'remote', 'a'], ['add']],
-      [['csc-test-cli', 'remote', 'add', '--u'], ['--url']],
-      [['csc-test-cli', 'd', '--target', 'pr'], ['production']],
-      [['csc-test-cli', 'deploy', '--target=pr'], ['--target=production']],
-      [['csc-test-cli', 'deploy', '-vtpr'], ['-vtproduction']],
-      [['csc-test-cli', 'deploy', '--target', 'remote', 'e'], ['eu']],
-      [['csc-test-cli', 'deploy', '--color', 'r'], ['red']],
-      [['csc-test-cli', 'deploy', '--color', '--t'], ['--target', '--tags']],
-      [['csc-test-cli', 'deploy', '--tags', 'one', 't'], ['two']],
-      [['csc-test-cli', 'deploy', '--tags=one', 't'], ['two']],
-      [['csc-test-cli', 'deploy', '--', '--'], []],
-      [['csc-test-cli', 'deploy', '--', 'e'], ['eu']],
-      [['csc-test-cli', '--', 'd'], []],
-      [['csc-test-cli', '--secret', 'h'], ['hidden-value']],
-    ];
-    for (const [words, expected] of cases) {
-      assert.deepEqual(complete(shell, words).sort(), expected.sort(), words.join(' '));
-    }
-  });
-
-  test(`${shell}: visibility and literal choices`, () => {
-    const root = complete(shell, ['csc-test-cli', '']);
-    assert.ok(root.includes('deploy'));
-    assert.ok(root.includes('--help'));
-    assert.ok(!root.includes('internal'));
-    assert.ok(!root.includes('--secret'));
-    assert.deepEqual(complete(shell, ['csc-test-cli', 'deploy', '--target', '']).sort(),
-      ['dev', 'production', 'two words', "it's fine", '$(touch PWNED)', '`touch PWNED`'].sort());
   });
 }
 

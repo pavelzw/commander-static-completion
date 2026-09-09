@@ -28,15 +28,16 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
 
 - [ ] Add focused extraction tests, including hidden entries, renamed/disabled
   help and version flags, custom help configuration, and option shadowing.
-- [ ] Compare scanner behavior with Commander on a shared set of token sequences:
+- [x] Compare scanner behavior with Commander on a shared set of token sequences:
   required/optional values, negative numbers, short clusters, empty assignments,
   variadic values, repeated flags, and `--`.
 - [ ] Verify parent-option handling before and after subcommands, including
   overlapping short/long aliases and hidden options typed explicitly.
-- [ ] Complete nested implicit help paths such as `mycli help remote add`,
-  and test explicit/custom help commands.
-- [ ] Support `enablePositionalOptions()` with the correct option scope.
-- [ ] Support `passThroughOptions()` and stop suggesting owned options at the
+- [x] Complete nested help using Commander's actual syntax (`mycli remote help add`)
+  and stop suggesting additional targets after `mycli help remote`.
+- [ ] Expand coverage of explicit/custom help commands and help configuration.
+- [x] Support `enablePositionalOptions()` with the correct option scope.
+- [x] Support `passThroughOptions()` and stop suggesting owned options at the
   correct boundary.
 - [ ] Support default subcommands without misclassifying positional arguments.
 - [ ] Support `combineFlagAndOptionalValue(false)`.
@@ -53,7 +54,7 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
 
 - [ ] Add native Bash Readline insertion tests; current Bash tests call generated
   functions directly. Verify spaces, quoting, directory suffixes, and `nospace` behavior.
-- [ ] Consolidate a shared behavior matrix across shells so new cases exercise
+- [x] Consolidate a shared behavior matrix across shells so new cases exercise
   Bash, Zsh, and Fish consistently.
 - [ ] Exercise cursor-in-the-middle completion, existing suffixes, unfinished
   quotes, escaped spaces, empty values, and tokens after the cursor.

@@ -82,13 +82,25 @@ clusters, attached values, `--option=value`, and `--` are supported. Hidden
 entries are recognized when typed explicitly but are not suggested. Suggestions
 preserve definition order; options remain available after being used.
 
-The generators currently reject positional-option mode, pass-through mode, default
-subcommands, `combineFlagAndOptionalValue(false)`, and executable subcommands.
+`enablePositionalOptions()` limits a command's options to the words before its
+subcommand. `passThroughOptions()` stops interpreting options at the first
+command argument. The scanners process parent options before child options,
+matching Commander's parsing order even when option names overlap.
+
+Negative numbers are accepted as optional/variadic values unless a digit is used
+as a short option in the command hierarchy. Attached variadic values such as
+`--tags=one` do not consume subsequent words. `--` ends option parsing, while
+command names that follow it can still select a subcommand, as in Commander.
+
+The generators currently reject default subcommands,
+`combineFlagAndOptionalValue(false)`, and executable subcommands.
 Supply ordinary in-process subcommand definitions for generation instead.
 These checks use a small isolated Commander compatibility adapter.
 
-Implicit `help` suggests immediate subcommands; nested help paths are not yet
-modeled. Custom help overrides can affect visible suggestions. Custom argument
+Implicit `help` suggests one immediate subcommand, including aliases. Use
+`mycli remote help add` for a nested command; Commander does not interpret
+`mycli help remote add` as a nested help path. Custom help overrides can affect
+visible suggestions. Custom argument
 parsers, option conflicts/implied values, and runtime plugin discovery are not
 interpreted. The scanner offers completion on incomplete input and is not a
 replacement for Commander validation. Descriptions are not yet displayed beside
@@ -129,7 +141,12 @@ Tests use `/bin/bash`, plus Zsh and Fish on PATH. Set `TEST_BASH`, `TEST_ZSH`, o
 `TEST_FISH` to override their executable paths. Tests cover generated shell syntax, command context,
 quoting, choices, and filesystem hints. Scanner tests disable external commands
 and provide a CLI stub that reports any invocation. Fish tests use `complete -C`;
-Zsh also has an interactive ZLE test for actual Tab insertion.
+Zsh also has an interactive ZLE test for actual Tab insertion. A shared behavior
+matrix runs in all three shells. A second matrix instruments fresh Commander
+definitions with probe value parsers and compares the declaration receiving the
+next token with the shell's suggestions. These probes test value ownership and
+parsing boundaries; they intentionally replace value-validation callbacks and
+do not establish equivalence for every possible CLI definition or input.
 
 GitHub Actions runs validation on Linux and macOS with Commander 14 and 15,
 Node 22.12.0, Node 24, and current Node. The matrix includes Bash 3.2 and 5.x,

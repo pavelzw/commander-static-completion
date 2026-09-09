@@ -19,6 +19,7 @@ const caseKey = (value: string): string => quote(value.replaceAll('\\', '\\\\').
 export function renderFish(nodes: ModelCommand[], executable: string, prefix: string): string {
   const specs: CompletionHint[] = [];
   const spec = (value: CompletionHint): number => { specs.push(value); return specs.length - 1; };
+  const localCases: string[] = [];
   const optionCases: string[] = [], argumentCases: string[] = [], childCases: string[] = [];
   const commandCases: string[] = [], flagCases: string[] = [];
   for (const node of nodes) {
@@ -27,6 +28,10 @@ export function renderFish(nodes: ModelCommand[], executable: string, prefix: st
       for (const flag of option.flags) {
         optionCases.push(`case ${caseKey(`${node.id}:${flag}`)}\n ${print([option.mode, String(value), option.variadic ? '1' : '0'])}`);
       }
+    }
+    for (const option of node.localOptions) {
+      const value = spec(option.value);
+      for (const flag of option.flags) localCases.push(`case ${caseKey(`${node.id}:${flag}`)}\n ${print([option.mode, String(value), option.variadic ? '1' : '0'])}`);
     }
     node.arguments.forEach((arg, index) => {
       argumentCases.push(`case ${quote(`${node.id}:${index}`)}\n ${print([String(spec(arg.value)), arg.variadic ? '1' : '0'])}`);
@@ -40,6 +45,8 @@ export function renderFish(nodes: ModelCommand[], executable: string, prefix: st
   const helper = (name: string, key: string, cases: string[], fallback: readonly string[] = []): string =>
     `function ${prefix}_${name}\n switch "${key}"\n ${cases.join('\n ')}\n case '*'\n ${print(fallback)}\n end\nend`;
   const functions = [
+    helper('settings', '$argv[1]', nodes.map(node => `case ${node.id}\n ${print([node.passThrough ? '1' : '0', node.negativeNumbers ? '1' : '0', node.positional ? '1' : '0'])}`)),
+    helper('local_option', '$argv[1]:$argv[2]', localCases, ['unknown', '-1', '0']),
     helper('option', '$argv[1]:$argv[2]', optionCases, ['unknown', '-1', '0']),
     helper('argument', '$argv[1]:$argv[2]', argumentCases, ['-1', '0']),
     helper('child', '$argv[1]:$argv[2]', childCases, ['-1']),

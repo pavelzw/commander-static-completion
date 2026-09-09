@@ -8,6 +8,8 @@ export interface ModelOption {
 }
 export interface ModelCommand {
   id: number; options: ModelOption[];
+  passThrough: boolean; positional: boolean; negativeNumbers: boolean;
+  localOptions: ModelOption[];
   arguments: { variadic: boolean; value: CompletionHint }[];
   children: { id: number; names: string[]; visible: boolean }[];
 }
@@ -23,8 +25,6 @@ interface CommanderInternals {
 export function checkCompatibility(command: Command) {
   const internal = command as Command & CommanderInternals;
   const unsupported: [keyof CommanderInternals, string][] = [
-    ['_enablePositionalOptions', 'enablePositionalOptions'],
-    ['_passThroughOptions', 'passThroughOptions'],
     ['_defaultCommandName', 'default subcommands'],
   ];
   for (const [key, label] of unsupported) {
@@ -48,13 +48,15 @@ export function valueSpec(target: Option | Argument): CompletionHint {
 
 export function extract(program: Command): ModelCommand[] {
   const nodes: ModelCommand[] = [];
-  function visit(command: Command, inherited: ModelOption[] = []): ModelCommand {
+  function visit(command: Command, inherited: ModelOption[] = [], ancestorDigit = false): ModelCommand {
     checkCompatibility(command);
+    const internal = command as Command & CommanderInternals;
+    const hasDigit = ancestorDigit || command.options.some(option => /^-\d$/u.test(option.short ?? ''));
     const help = command.createHelp();
     const visibleOptions = help.visibleOptions(command);
     // Keep hidden options in the parser, but never suggest them.
     const local = [...new Set([...command.options, ...visibleOptions])];
-    const options: ModelOption[] = local.map(option => ({
+    const localOptions: ModelOption[] = local.map(option => ({
       flags: [option.short, option.long].filter((flag): flag is string => flag !== undefined),
       visible: visibleOptions.includes(option),
       inherited: command.options.includes(option),
@@ -62,11 +64,27 @@ export function extract(program: Command): ModelCommand[] {
       variadic: option.variadic,
       value: valueSpec(option),
     }));
-    const localFlags = new Set(options.flatMap(option => option.flags));
-    options.push(...inherited.map(option => ({ ...option, flags: option.flags.filter(flag => !localFlags.has(flag)) })));
-    const node: ModelCommand = { id: nodes.length, options, arguments: command.registeredArguments.map(arg => ({
-      variadic: arg.variadic, value: valueSpec(arg),
-    })), children: [] };
+    // Commander parses ancestor options before delegating to a subcommand.
+    // Keep that priority when flags overlap; positional mode ends only the
+    // current command's scope, not already-active ancestor scopes.
+    const seen = new Set<string>();
+    const options = [...inherited, ...localOptions].map(option => ({
+      ...option,
+      flags: option.flags.filter(flag => {
+        if (seen.has(flag)) return false;
+        seen.add(flag);
+        return true;
+      }),
+    }));
+    const node: ModelCommand = {
+      id: nodes.length, options, localOptions,
+      positional: internal._enablePositionalOptions ?? false,
+      passThrough: internal._passThroughOptions ?? false,
+      negativeNumbers: !hasDigit,
+      arguments: command.registeredArguments.map(arg => ({
+        variadic: arg.variadic, value: valueSpec(arg),
+      })), children: [],
+    };
     nodes.push(node);
     const visibleCommands = help.visibleCommands(command);
     for (const child of new Set([...command.commands, ...visibleCommands])) {
@@ -74,12 +92,14 @@ export function extract(program: Command): ModelCommand[] {
       const synthetic = !command.commands.includes(child);
       let childNode: ModelCommand;
       if (synthetic) {
-        childNode = { id: nodes.length, options: [], arguments: [{ variadic: true, value: {
+        childNode = { id: nodes.length, options: [], localOptions: [], passThrough: false, positional: false, negativeNumbers: !hasDigit, arguments: [{ variadic: false, value: {
           kind: 'choices', values: visibleCommands.filter(c => c !== child).flatMap(c => [c.name(), ...c.aliases()]),
         } }], children: [] };
         nodes.push(childNode);
       } else {
-        childNode = visit(child, options.filter(option => option.inherited));
+        const forwarded = internal._enablePositionalOptions || internal._passThroughOptions
+          ? inherited : [...inherited, ...localOptions.filter(option => option.inherited)];
+        childNode = visit(child, forwarded, hasDigit);
       }
       node.children.push({ id: childNode.id, names: [child.name(), ...child.aliases()], visible: visibleCommands.includes(child) });
     }

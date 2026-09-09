@@ -11,11 +11,16 @@ const array = (values: readonly string[]): string => `(${values.map(quote).join(
 export function renderBourne(nodes: ModelCommand[], executable: string, prefix: string, shell: 'bash' | 'zsh'): string {
   const specs: CompletionHint[] = [];
   const spec = (value: CompletionHint): number => { specs.push(value); return specs.length - 1; };
+  const localCases: string[] = [];
   const optionCases: string[] = [], argumentCases: string[] = [], childCases: string[] = [], suggestionCases: string[] = [];
   for (const node of nodes) {
     for (const option of node.options) {
       const id = spec(option.value);
       for (const flag of option.flags) optionCases.push(`${quote(`${node.id}:${flag}`)}) mode=${option.mode}; value=${id}; variadic=${option.variadic ? 1 : 0} ;;`);
+    }
+    for (const option of node.localOptions) {
+      const id = spec(option.value);
+      for (const flag of option.flags) localCases.push(`${quote(`${node.id}:${flag}`)}) mode=${option.mode}; value=${id}; variadic=${option.variadic ? 1 : 0} ;;`);
     }
     node.arguments.forEach((arg, index) => {
       argumentCases.push(`${quote(`${node.id}:${index}`)}) value=${spec(arg.value)}; variadic=${arg.variadic ? 1 : 0} ;;`);
@@ -26,6 +31,8 @@ export function renderBourne(nodes: ModelCommand[], executable: string, prefix: 
     suggestionCases.push(`${node.id}) candidates=${array(node.children.filter(c => c.visible).flatMap(c => c.names))}; flags=${array([...new Set(node.options.filter(o => o.visible).flatMap(o => o.flags))])} ;;`);
   }
   const functions = [
+    `${prefix}_settings() {\n case "$state" in\n${nodes.map(node => `${node.id}) passthrough=${node.passThrough ? 1 : 0}; positional=${node.positional ? 1 : 0}; negative=${node.negativeNumbers ? 1 : 0} ;;`).join('\n')}\n esac\n}`,
+    `${prefix}_local_option() {\n mode=; value=-1; variadic=0\n case "$state:$1" in\n${localCases.join('\n')}\n esac\n}`,
     `${prefix}_option() {\n mode=; value=-1; variadic=0\n case "$state:$1" in\n${optionCases.join('\n')}\n esac\n}`,
     `${prefix}_argument() {\n value=-1; variadic=0\n case "$state:$position" in\n${argumentCases.join('\n')}\n esac\n}`,
     `${prefix}_child() {\n next=\n case "$state:$1" in\n${childCases.join('\n')}\n esac\n}`,

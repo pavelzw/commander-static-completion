@@ -1,20 +1,25 @@
 // Shell source is kept in TypeScript so tsc produces a self-contained package.
 export function bourneRuntime(shell: 'bash' | 'zsh'): string {
-  return `__PREFIX__() {
+  return `${filterRuntime}\n__PREFIX__() {
 ${shell === 'zsh' ? zshInput : ''}
-  local state=0 position=0 end=0 pending= pending_value=-1 pending_variadic=0
+  local state=0 position=0 operands=0 end=0 pending= pending_value=-1 pending_variadic=0
+  local passthrough positional negative join_next=0
+  local number_pattern='^-([0-9]+|[0-9]*[.][0-9]+)(e[+-]?[0-9]+)?$'
   local mode value=-1 variadic=0 next kind word current flag rest attached
   local i j count=0 candidate lead= raw_current="\${COMP_WORDS[COMP_CWORD]}"
   local -a tokens candidates flags
   COMPREPLY=()
+  __PREFIX___settings
 
   # Bash normally splits '=' into its own word. Reassemble option assignments.
   for ((i=1; i<=COMP_CWORD; i++)); do
     word=\${COMP_WORDS[i]}
     if ((count > 0)) && [[ $word == = && \${tokens[count-1]} == --* ]]; then
       tokens[count-1]+='='
-    elif ((count > 0)) && [[ \${tokens[count-1]} == --*= && $word != = ]]; then
+      join_next=1
+    elif ((join_next)) && [[ $word != = ]]; then
       tokens[count-1]+=$word
+      join_next=0
     else
       tokens[count]=$word
       ((count+=1))
@@ -22,52 +27,29 @@ ${shell === 'zsh' ? zshInput : ''}
   done
   current=\${tokens[count-1]}
 
+  __PREFIX___filter
   for ((i=0; i<count-1; i++)); do
     word=\${tokens[i]}
-    if [[ -n $pending ]]; then
-      if [[ $pending == required || $word != -* || $word == - ]]; then
-        if ((pending_variadic)); then pending=optional; else pending=; fi
+    if (( ! end )) && [[ $word == -- ]]; then end=1; continue; fi
+    if ((operands == 0)); then
+      __PREFIX___child "$word"
+      if [[ -n $next ]]; then
+        state=$next; position=0
+        tokens=("\${tokens[@]:$((i+1))}")
+        count=\${#tokens[@]}; i=-1
+        __PREFIX___settings
+        __PREFIX___filter
         continue
       fi
-      pending=
     fi
-    if (( ! end )) && [[ $word == -- ]]; then end=1; continue; fi
-    if (( ! end )) && [[ $word == --* ]]; then
-      __PREFIX___option "\${word%%=*}"
-      if [[ -n $mode && $mode != boolean && $word != *=* ]]; then
-        pending=$mode; pending_value=$value; pending_variadic=$variadic
-      elif [[ $mode != boolean && -n $mode ]] && ((variadic)); then
-        pending=optional; pending_value=$value; pending_variadic=1
-      fi
-      continue
-    fi
-    if (( ! end )) && [[ $word == -?* ]]; then
-      rest=\${word:1}
-      while [[ -n $rest ]]; do
-        flag=-\${rest:0:1}; rest=\${rest:1}
-        __PREFIX___option "$flag"
-        if [[ -z $mode ]]; then break; fi
-        if [[ $mode != boolean ]]; then
-          if [[ -z $rest ]]; then
-            pending=$mode; pending_value=$value; pending_variadic=$variadic
-          elif ((variadic)); then
-            pending=optional; pending_value=$value; pending_variadic=1
-          fi
-          break
-        fi
-      done
-      continue
-    fi
-    if (( ! end && position == 0 )); then
-      __PREFIX___child "$word"
-      if [[ -n $next ]]; then state=$next; position=0; continue; fi
-    fi
+    ((operands+=1))
+    if ((passthrough)); then end=1; fi
     __PREFIX___argument
     if (( ! variadic )); then ((position+=1)); fi
   done
 
   value=-1
-  if [[ -n $pending ]] && { [[ $pending == required || $current != -* || $current == - ]]; }; then
+  if [[ -n $pending ]] && { [[ $pending == required || $current != -* || $current == - ]] || { ((negative)) && [[ $current =~ $number_pattern ]]; }; }; then
     value=$pending_value
   elif (( ! end )) && [[ $current == --*=* ]]; then
     __PREFIX___option "\${current%%=*}"
@@ -91,7 +73,7 @@ ${shell === 'zsh' ? zshInput : ''}
     __PREFIX___values
   else
     __PREFIX___suggestions
-    if ((end || position > 0)); then candidates=(); fi
+    if ((operands > 0)); then candidates=(); fi
     if (( ! end )); then candidates+=("\${flags[@]}"); fi
     local -a base=("\${candidates[@]}")
     __PREFIX___argument
@@ -130,3 +112,69 @@ const zshOutput = `  emulate -L zsh
     if [[ -n $lead ]]; then compset -P "\${(b)lead}"; fi
     if [[ $kind == directory ]]; then _files -/; else _files; fi
   fi`;
+
+const filterRuntime = `__PREFIX___filter() {
+  local p seen=0 token rest attached=0
+  local -a filtered
+  pending=; pending_value=-1; pending_variadic=0
+  if ((end)); then return; fi
+  for ((p=0; p<count-1; p++)); do
+    token=\${tokens[p]}
+    if [[ -n $pending ]]; then
+      if [[ $pending == required || $token != -* || $token == - ]] || { ((negative)) && [[ $token =~ $number_pattern ]]; }; then
+        if ((pending_variadic)); then pending=optional; else pending=; fi
+        continue
+      fi
+      pending=
+    fi
+    if [[ $token == -- ]]; then
+      filtered+=("\${tokens[@]:$p:$((count-1-p))}")
+      break
+    fi
+    __PREFIX___local_option "$token"
+    attached=0
+    if [[ -z $mode && $token == --*=* ]]; then
+      __PREFIX___local_option "\${token%%=*}"
+      if [[ $mode == boolean ]]; then mode=; fi
+      attached=1
+    elif [[ -z $mode && $token == -?* && $token != --* ]]; then
+      rest=\${token:1}
+      while [[ -n $rest ]]; do
+        __PREFIX___local_option "-\${rest:0:1}"
+        if [[ -z $mode ]]; then token=-$rest; break; fi
+        rest=\${rest:1}
+        if [[ $mode != boolean ]]; then
+          [[ -n $rest ]] && attached=1
+          break
+        fi
+      done
+    fi
+    if [[ -n $mode ]]; then
+      if [[ $mode != boolean ]] && (( ! attached )); then
+        pending=$mode; pending_value=$value; pending_variadic=$variadic
+      fi
+      continue
+    fi
+    if ((positional && seen == 0)); then
+      __PREFIX___child "$token"
+      if [[ -n $next ]]; then
+        filtered+=("\${tokens[@]:$p:$((count-1-p))}")
+        break
+      fi
+    fi
+    filtered+=("$token")
+    ((seen+=1))
+    if ((passthrough)); then
+      filtered+=("\${tokens[@]:$((p+1)):$((count-2-p))}")
+      break
+    fi
+  done
+  if [[ -n $pending ]] && { [[ $pending == required || $current != -* || $current == - ]] || { ((negative)) && [[ $current =~ $number_pattern ]]; }; }; then
+    # Ancestor options consume values before a child ever sees the remaining words.
+    tokens=("$current"); count=1
+  else
+    pending=
+    tokens=("\${filtered[@]}" "$current"); count=\${#tokens[@]}
+  fi
+}
+`;

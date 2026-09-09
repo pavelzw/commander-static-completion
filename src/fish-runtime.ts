@@ -15,6 +15,8 @@ function __PREFIX___scan
     set -l current "$argv[1]"
     set -l state 0
     set -l position 0
+    set -l operands 0
+    set -l settings (__PREFIX___settings $state)
     set -l ended 0
     set -l pending ''
     set -l pending_value -1
@@ -22,78 +24,56 @@ function __PREFIX___scan
     set -l info
     set -l lead ''
 
-    for word in $argv[2..-1]
-        if test -n "$pending"
-            if test "$pending" = required; or not string match -q -- '-*' "$word"; or test "$word" = -
-                if test $pending_variadic -eq 1
-                    set pending optional
-                else
-                    set pending ''
-                end
+    set -l tokens $argv[2..-1]
+    while true
+        set settings (__PREFIX___settings $state)
+        set pending ''
+        if test $ended -eq 0
+            set -l filtered (__PREFIX___filter $state "$current" $tokens | string split0)
+            set pending "$filtered[1]"
+            set pending_value $filtered[2]
+            set pending_variadic $filtered[3]
+            set tokens $filtered[4..-1]
+        end
+        if test -n "$pending"; and begin; test "$pending" = required; or not string match -q -- '-*' "$current"; or test "$current" = -; or begin; test "$settings[2]" = 1; and string match -qr -- '^-([0-9]+|[0-9]*[.][0-9]+)(e[+-]?[0-9]+)?$' "$current"; end; end
+            break
+        end
+        set pending ''
+        set -l dispatched 0
+        set -l index 1
+        while test $index -le (count $tokens)
+            set -l word "$tokens[$index]"
+            set index (math $index + 1)
+            if test $ended -eq 0; and test "$word" = --
+                set ended 1
                 continue
             end
-            set pending ''
-        end
-        if test $ended -eq 0; and test "$word" = --
-            set ended 1
-            continue
-        end
-        if test $ended -eq 0; and string match -q -- '--*' "$word"
-            set -l parts (string split -m 1 = -- "$word")
-            set info (__PREFIX___option $state "$parts[1]")
-            if contains -- "$info[1]" required optional
-                if test (count $parts) -eq 1
-                    set pending $info[1]
-                    set pending_value $info[2]
-                    set pending_variadic $info[3]
-                else if test "$info[3]" = 1
-                    set pending optional
-                    set pending_value $info[2]
-                    set pending_variadic 1
-                end
-            end
-            continue
-        end
-        if test $ended -eq 0; and string match -qr -- '^-.+' "$word"
-            set -l rest (string sub -s 2 -- "$word")
-            while test -n "$rest"
-                set -l flag -(string sub -l 1 -- "$rest")
-                set rest (string sub -s 2 -- "$rest")
-                set info (__PREFIX___option $state "$flag")
-                if test "$info[1]" = unknown
-                    break
-                end
-                if test "$info[1]" != boolean
-                    if test -z "$rest"
-                        set pending $info[1]
-                        set pending_value $info[2]
-                        set pending_variadic $info[3]
-                    else if test "$info[3]" = 1
-                        set pending optional
-                        set pending_value $info[2]
-                        set pending_variadic 1
-                    end
+            if test $operands -eq 0
+                set -l next (__PREFIX___child $state "$word")
+                if test "$next" != -1
+                    set state $next
+                    set position 0
+                    set tokens $tokens[$index..-1]
+                    set dispatched 1
                     break
                 end
             end
-            continue
-        end
-        if test $ended -eq 0; and test $position -eq 0
-            set -l next (__PREFIX___child $state "$word")
-            if test "$next" != -1
-                set state $next
-                set position 0
-                continue
+            set operands (math $operands + 1)
+            if test "$settings[1]" = 1
+                set ended 1
+            end
+            set info (__PREFIX___argument $state $position)
+            if test "$info[2]" = 0
+                set position (math $position + 1)
             end
         end
-        set info (__PREFIX___argument $state $position)
-        if test "$info[2]" = 0
-            set position (math $position + 1)
+        if test $dispatched -eq 0
+            break
         end
     end
 
     set -l value -1
-    if test -n "$pending"; and begin; test "$pending" = required; or not string match -q -- '-*' "$current"; or test "$current" = -; end
+    if test -n "$pending"; and begin; test "$pending" = required; or not string match -q -- '-*' "$current"; or test "$current" = -; or begin; test "$settings[2]" = 1; and string match -qr -- '^-([0-9]+|[0-9]*[.][0-9]+)(e[+-]?[0-9]+)?$' "$current"; end; end
         set value $pending_value
     else if test $ended -eq 0; and string match -q -- '--*=*' "$current"
         set -l parts (string split -m 1 = -- "$current")
@@ -125,10 +105,10 @@ function __PREFIX___scan
     end
 
     if test $value -lt 0
+        if test $operands -eq 0
+            __PREFIX___commands $state
+        end
         if test $ended -eq 0
-            if test $position -eq 0
-                __PREFIX___commands $state
-            end
             __PREFIX___flags $state
         end
         set info (__PREFIX___argument $state $position)
@@ -150,5 +130,85 @@ function __PREFIX___scan
             printf '%s\n' "$lead$candidate"
         end
     end
+end
+function __PREFIX___filter
+    set -l state $argv[1]
+    set -l tokens $argv[3..-1]
+    set -l settings (__PREFIX___settings $state)
+    set -l pending ''
+    set -l pending_value -1
+    set -l pending_variadic 0
+    set -l filtered
+    set -l index 1
+    set -l seen 0
+    while test $index -le (count $tokens)
+        set -l token "$tokens[$index]"
+        set -l original_index $index
+        set index (math $index + 1)
+        if test -n "$pending"
+            if test "$pending" = required; or not string match -q -- '-*' "$token"; or test "$token" = -; or begin; test "$settings[2]" = 1; and string match -qr -- '^-([0-9]+|[0-9]*[.][0-9]+)(e[+-]?[0-9]+)?$' "$token"; end
+                if test $pending_variadic -eq 1
+                    set pending optional
+                else
+                    set pending ''
+                end
+                continue
+            end
+            set pending ''
+        end
+        if test "$token" = --
+            set -a filtered $tokens[$original_index..-1]
+            break
+        end
+        set -l info (__PREFIX___local_option $state "$token")
+        set -l attached 0
+        if test "$info[1]" = unknown; and string match -q -- '--*=*' "$token"
+            set -l parts (string split -m 1 = -- "$token")
+            set info (__PREFIX___local_option $state "$parts[1]")
+            if test "$info[1]" = boolean
+                set info unknown -1 0
+            end
+            set attached 1
+        else if test "$info[1]" = unknown; and string match -qr -- '^-.+' "$token"; and not string match -q -- '--*' "$token"
+            set -l rest (string sub -s 2 -- "$token")
+            while test -n "$rest"
+                set -l flag -(string sub -l 1 -- "$rest")
+                set info (__PREFIX___local_option $state "$flag")
+                if test "$info[1]" = unknown
+                    set token "-$rest"
+                    break
+                end
+                set rest (string sub -s 2 -- "$rest")
+                if test "$info[1]" != boolean
+                    if test -n "$rest"
+                        set attached 1
+                    end
+                    break
+                end
+            end
+        end
+        if test "$info[1]" != unknown
+            if test "$info[1]" != boolean; and test $attached -eq 0
+                set pending $info[1]
+                set pending_value $info[2]
+                set pending_variadic $info[3]
+            end
+            continue
+        end
+        if test "$settings[3]" = 1; and test $seen -eq 0
+            set -l next (__PREFIX___child $state "$token")
+            if test "$next" != -1
+                set -a filtered $tokens[$original_index..-1]
+                break
+            end
+        end
+        set -a filtered "$token"
+        set seen (math $seen + 1)
+        if test "$settings[1]" = 1
+            set -a filtered $tokens[$index..-1]
+            break
+        end
+    end
+    printf '%s\0' "$pending" "$pending_value" "$pending_variadic" $filtered
 end
 `;
