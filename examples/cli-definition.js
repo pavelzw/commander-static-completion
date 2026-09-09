@@ -1,5 +1,5 @@
 import { Command, Option } from 'commander';
-import { completionHint } from '../src/index.js';
+import { completionHint } from '../dist/index.js';
 
 export const program = new Command('mycli').description('Example deployment CLI');
 program.command('deploy')

@@ -3,11 +3,35 @@
   "version": "0.1.0",
   "description": "Generate standalone shell completions from Commander command definitions",
   "type": "module",
-  "exports": { ".": { "types": "./src/index.d.ts", "import": "./src/index.js", "default": "./src/index.js" } },
-  "files": ["src", "README.md"],
-  "scripts": { "test": "node --test", "check": "tsc --noEmit", "example": "node examples/generate.js" },
-  "engines": { "node": ">=22.12.0" },
-  "peerDependencies": { "commander": "^14.0.0 || ^15.0.0" },
-  "devDependencies": { "commander": "^15.0.0", "typescript": "^5.9.3", "@types/node": "^22.0.0" },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "npm run build && node --test test/*.test.js",
+    "check": "tsc --noEmit",
+    "example": "npm run build --silent && node examples/generate.js",
+    "prepack": "npm run build"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "peerDependencies": {
+    "commander": "^14.0.0 || ^15.0.0"
+  },
+  "devDependencies": {
+    "commander": "^15.0.0",
+    "typescript": "^5.9.3",
+    "@types/node": "^22.0.0"
+  },
   "license": "MIT"
 }

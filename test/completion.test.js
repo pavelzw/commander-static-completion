@@ -1,3 +1,4 @@
+import { fixture } from './fixture.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -5,23 +6,9 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Command, Option, Argument } from 'commander';
-import { completionHint, generateCompletion } from '../src/index.js';
+import { completionHint, generateCompletion } from '../dist/index.js';
 
 const quote = s => "'" + s.replaceAll("'", "'\\''") + "'";
-function fixture() {
-  const program = new Command('mycli').version('1.0').option('-v, --verbose');
-  program.addOption(new Option('--secret <value>').hideHelp().choices(['hidden-value']));
-  const deploy = program.command('deploy').alias('d');
-  deploy.addOption(new Option('-t, --target <target>').choices(['dev', 'production', 'two words', "it's fine", '$(touch PWNED)', '`touch PWNED`']));
-  deploy.addOption(new Option('-c, --color [color]').choices(['red', 'blue']));
-  deploy.addOption(new Option('--tags <tags...>').choices(['one', 'two']));
-  deploy.option('--no-cache');
-  deploy.addOption(completionHint(new Option('--config <path>'), { kind: 'file' }));
-  deploy.addArgument(new Argument('[region]').choices(['eu', 'us']));
-  program.command('remote').command('add').option('--url <url>');
-  program.command('internal', { hidden: true });
-  return program;
-}
 
 function complete(program, words, { cwd, breaks = ' \t\n"\'@><=;|&(:' } = {}) {
   const script = generateCompletion(program, { shell: 'bash' });
@@ -117,7 +104,7 @@ test('unsupported configurations and invalid inputs produce diagnostics', () => 
     new Command('mycli').combineFlagAndOptionalValue(false),
     new Command('mycli').command('external', 'External executable'),
   ]) assert.throws(() => generateCompletion(program, { shell: 'bash' }), /support|requires|definition/);
-  assert.throws(() => generateCompletion(fixture(), { shell: 'fish' }), /Unsupported shell/);
+  assert.throws(() => generateCompletion(fixture(), { shell: 'powershell' }), /Unsupported shell/);
   assert.throws(() => generateCompletion(fixture(), { shell: 'bash', executable: '' }), /executable/);
   assert.throws(() => completionHint(new Option('--foo'), { kind: 'choices', values: [1] }), /strings/);
 });

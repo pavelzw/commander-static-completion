@@ -1,26 +1,29 @@
-__PREFIX__() {
+// Shell source is kept in TypeScript so tsc produces a self-contained package.
+export function bourneRuntime(shell: 'bash' | 'zsh'): string {
+  return `__PREFIX__() {
+${shell === 'zsh' ? zshInput : ''}
   local state=0 position=0 end=0 pending= pending_value=-1 pending_variadic=0
   local mode value=-1 variadic=0 next kind word current flag rest attached
-  local i j count=0 candidate lead= raw_current="${COMP_WORDS[COMP_CWORD]}"
-  local -a words candidates flags
+  local i j count=0 candidate lead= raw_current="\${COMP_WORDS[COMP_CWORD]}"
+  local -a tokens candidates flags
   COMPREPLY=()
 
   # Bash normally splits '=' into its own word. Reassemble option assignments.
   for ((i=1; i<=COMP_CWORD; i++)); do
-    word=${COMP_WORDS[i]}
-    if ((count > 0)) && [[ $word == = && ${words[count-1]} == --* ]]; then
-      words[count-1]+='='
-    elif ((count > 0)) && [[ ${words[count-1]} == --*= && $word != = ]]; then
-      words[count-1]+=$word
+    word=\${COMP_WORDS[i]}
+    if ((count > 0)) && [[ $word == = && \${tokens[count-1]} == --* ]]; then
+      tokens[count-1]+='='
+    elif ((count > 0)) && [[ \${tokens[count-1]} == --*= && $word != = ]]; then
+      tokens[count-1]+=$word
     else
-      words[count]=$word
+      tokens[count]=$word
       ((count+=1))
     fi
   done
-  current=${words[count-1]}
+  current=\${tokens[count-1]}
 
   for ((i=0; i<count-1; i++)); do
-    word=${words[i]}
+    word=\${tokens[i]}
     if [[ -n $pending ]]; then
       if [[ $pending == required || $word != -* || $word == - ]]; then
         if ((pending_variadic)); then pending=optional; else pending=; fi
@@ -30,7 +33,7 @@ __PREFIX__() {
     fi
     if (( ! end )) && [[ $word == -- ]]; then end=1; continue; fi
     if (( ! end )) && [[ $word == --* ]]; then
-      __PREFIX___option "${word%%=*}"
+      __PREFIX___option "\${word%%=*}"
       if [[ -n $mode && $mode != boolean && $word != *=* ]]; then
         pending=$mode; pending_value=$value; pending_variadic=$variadic
       elif [[ $mode != boolean && -n $mode ]] && ((variadic)); then
@@ -39,9 +42,9 @@ __PREFIX__() {
       continue
     fi
     if (( ! end )) && [[ $word == -?* ]]; then
-      rest=${word:1}
+      rest=\${word:1}
       while [[ -n $rest ]]; do
-        flag=-${rest:0:1}; rest=${rest:1}
+        flag=-\${rest:0:1}; rest=\${rest:1}
         __PREFIX___option "$flag"
         if [[ -z $mode ]]; then break; fi
         if [[ $mode != boolean ]]; then
@@ -67,16 +70,16 @@ __PREFIX__() {
   if [[ -n $pending ]] && { [[ $pending == required || $current != -* || $current == - ]]; }; then
     value=$pending_value
   elif (( ! end )) && [[ $current == --*=* ]]; then
-    __PREFIX___option "${current%%=*}"
+    __PREFIX___option "\${current%%=*}"
     if [[ -z $mode || $mode == boolean ]]; then return 0; fi
-    lead=${current%%=*}=
-    current=${current#*=}
+    lead=\${current%%=*}=
+    current=\${current#*=}
     # Readline replaces only the part after '=' when it is a word break.
     if [[ $COMP_WORDBREAKS == *=* && $raw_current != --*=* ]]; then lead=; fi
   elif (( ! end )) && [[ $current == -?* && $current != --* ]]; then
-    rest=${current:1}; attached=-
+    rest=\${current:1}; attached=-
     while [[ -n $rest ]]; do
-      flag=-${rest:0:1}; attached+=${rest:0:1}; rest=${rest:1}
+      flag=-\${rest:0:1}; attached+=\${rest:0:1}; rest=\${rest:1}
       __PREFIX___option "$flag"
       if [[ -z $mode ]]; then value=-1; break; fi
       if [[ $mode != boolean && -n $rest ]]; then lead=$attached; current=$rest; break; fi
@@ -89,16 +92,22 @@ __PREFIX__() {
   else
     __PREFIX___suggestions
     if ((end || position > 0)); then candidates=(); fi
-    if (( ! end )); then candidates+=("${flags[@]}"); fi
-    local -a base=("${candidates[@]}")
+    if (( ! end )); then candidates+=("\${flags[@]}"); fi
+    local -a base=("\${candidates[@]}")
     __PREFIX___argument
     __PREFIX___values
-    candidates=("${base[@]}" "${candidates[@]}")
+    candidates=("\${base[@]}" "\${candidates[@]}")
   fi
-  for candidate in "${candidates[@]}"; do
+  for candidate in "\${candidates[@]}"; do
     [[ $candidate == "$current"* ]] && COMPREPLY+=("$lead$candidate")
   done
-  if [[ $kind == file || $kind == directory ]]; then
+${shell === 'bash' ? bashFiles : zshOutput}
+  return 0
+}
+`;
+}
+
+const bashFiles = `  if [[ $kind == file || $kind == directory ]]; then
     local action=file
     [[ $kind == directory ]] && action=directory
     while IFS= read -r candidate; do
@@ -106,5 +115,18 @@ __PREFIX__() {
     done < <(compgen -A "$action" -- "$current")
     compopt -o filenames 2>/dev/null || :
   fi
-  return 0
-}
+`;
+
+const zshInput = `  emulate -L ksh
+  local -a COMP_WORDS=("\${words[@]}") COMPREPLY
+  local COMP_CWORD=$((CURRENT - 1)) COMP_WORDBREAKS=
+  # Ignore text after the cursor in the current token.
+  COMP_WORDS[COMP_CWORD]=$PREFIX`;
+
+const zshOutput = `  emulate -L zsh
+  if ((\${#COMPREPLY[@]})); then compadd -- "\${COMPREPLY[@]}"; fi
+  if [[ $kind == file || $kind == directory ]]; then
+    # Native file completion handles quoting and directory suffixes.
+    if [[ -n $lead ]]; then compset -P "\${(b)lead}"; fi
+    if [[ $kind == directory ]]; then _files -/; else _files; fi
+  fi`;
