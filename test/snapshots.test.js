@@ -44,9 +44,9 @@ for (const kind of ["command", "alias", "option", "choice", "executable"]) {
       for (const shell of ["bash", "fish", "zsh"]) {
         const output = await capture(shell, literalFixture(kind, suffix), input);
         // Bash may not invoke a registered function for quoted executables, or
-        // (in 5.x) when the previous word contains backticks. Snapshot that too.
+        // (in 5.2) when the previous word contains backticks. Snapshot that too.
         const nativeBashLimitation =
-          shell === "bash" && (kind === "executable" || (versioned && bashVersion !== "3"));
+          shell === "bash" && (kind === "executable" || (versioned && bashRelease === "5.2"));
         if (kind !== "choice" && !nativeBashLimitation) {
           assert.match(
             output,
@@ -54,8 +54,7 @@ for (const kind of ["command", "alias", "option", "choice", "executable"]) {
             `${shell} must recognize the committed literal ${kind}`,
           );
         }
-        const label =
-          shell === "bash" && versioned ? `bash (${bashVersion === "3" ? "3.2" : "4+"})` : shell;
+        const label = shell === "bash" && versioned ? `bash (${bashRelease})` : shell;
         sections.push(`Shell: ${label}\n\n${output}`);
       }
       const path = new URL(`./snapshots/literal-${kind}-${name}.snap`, import.meta.url);
@@ -123,10 +122,15 @@ const cases = [
   ["ambiguous", "csc-test-cli deploy --color <TAB><TAB>"],
 ];
 const versionedCases = new Set(["editing-empty-quoted-value", "editing-closed-quote"]);
-const bashVersion = execFileSync(executables.bash, ["-c", 'printf "%s" "$BASH_VERSINFO"'], {
-  encoding: "utf8",
-  timeout: 5000,
-}).trim();
+const bashRelease = execFileSync(
+  executables.bash,
+  ["-c", 'printf "%s.%s" "${BASH_VERSINFO[0]}" "${BASH_VERSINFO[1]}"'],
+  {
+    encoding: "utf8",
+    timeout: 5000,
+  },
+).trim();
+const bashVersion = bashRelease.split(".")[0];
 for (const [name, input, makeProgram] of cases) {
   test(`interactive snapshot: ${name}`, async () => {
     const sections = [];

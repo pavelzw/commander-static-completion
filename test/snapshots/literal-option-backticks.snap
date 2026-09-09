@@ -6,9 +6,15 @@ Shell: bash (3.2)
 
 ---
 
-Shell: bash (4+)
+Shell: bash (5.2)
 
 > csc-test-cli --flag\`echo\>PWNED\` pr▏
+
+---
+
+Shell: bash (5.3)
+
+> csc-test-cli --flag\`echo\>PWNED\` production ▏
 
 ---
 

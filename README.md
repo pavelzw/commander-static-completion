@@ -224,10 +224,11 @@ quoting: a registration for `cli*` is not invoked for `cli\*` or `"cli*"`.
 The executable-name snapshots preserve that native limitation. For Bash, use a
 shell-safe executable or alias and generate for that name with `executable`.
 Mixed quoting of ordinary executable names has the same Bash limitation.
-Bash 5.x also skips the registered function when the immediately preceding word
+Bash 5.2 also skips the registered function when the immediately preceding word
 contains escaped backticks, for example after an option named
 ``--flag`literal` ``. The `literal-option-backticks` snapshot records this
-separately from Bash 3.2. Avoid backticks in option names when targeting Bash.
+separately from Bash 3.2 and 5.3, which complete it correctly. Avoid backticks
+in option names when targeting Bash 5.2.
 
 Bash supports its default `COMP_WORDBREAKS`, removing `=` and/or `:`, and adding
 `,` as a delimiter. Completion preserves that setting. For example,
