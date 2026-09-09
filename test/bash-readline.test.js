@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { runShell, ptyReadUntil } from "./shell-process.js";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -26,24 +26,29 @@ PS1='CSC_READY> '
 PROMPT_COMMAND='if [[ $capture == yes ]]; then history 1 > result; printf CSC_DONE; fi; capture=yes'
 bind 'set enable-bracketed-paste off'
 bind '"\\C-x\\C-g": "\\C-a#\\C-e\\C-m"'
+node() { printf invoked > invoked; }
 csc-test-cli() { printf invoked > invoked; }
 PATH=/nonexistent
 capture=no
 `,
   );
-  const driver = `zmodload zsh/zpty
+  const driver = `set -e
+${ptyReadUntil}
+zmodload zsh/zpty
 trap 'zpty -d worker 2>/dev/null' EXIT
-zpty worker ${quote(executables.bash)} --noprofile --norc -i
-zpty -r worker output '*CSC_PROMPT*'
+zpty -b worker /bin/sh -c ${quote(`echo $$ > worker.pid; exec ${quote(executables.bash)} --noprofile --norc -i`)}
+_until CSC_PROMPT
 zpty -w -n worker ${quote("source ./setup.bash\r")}
-zpty -r worker output '*CSC_READY*'
+_until CSC_READY
 zpty -w -n worker ${quote(input + "\x18\x07")}
-zpty -r worker output '*CSC_DONE*'
+_until CSC_DONE
 print -r -- "$output"
 zpty -d worker
 `;
-  const result = spawnSync(executables.zsh, ["-f"], {
+  const result = runShell(executables.zsh, ["-f"], {
     input: driver,
+    context: { shell: executables.bash, input },
+    workerFile: join(cwd, "worker.pid"),
     cwd,
     encoding: "utf8",
     timeout: 15000,

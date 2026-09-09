@@ -2,7 +2,7 @@ import { complete as completeShell } from "./helpers.js";
 import { fixture } from "./fixture.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { runShell } from "./shell-process.js";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -50,7 +50,7 @@ test("generation is deterministic, syntactically valid, and does not parse", () 
   const a = generateCompletion(program, { shell: "bash" });
   assert.equal(generateCompletion(program, { shell: "bash" }), a);
   assert.deepEqual(program.args, []);
-  assert.equal(spawnSync(bash, ["-n"], { input: a }).status, 0);
+  assert.equal(runShell(bash, ["-n"], { input: a }).status, 0);
 });
 
 test("unsupported configurations and invalid inputs produce diagnostics", () => {

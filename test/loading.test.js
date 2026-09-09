@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { spawnSync } from "node:child_process";
+import { runShell } from "./shell-process.js";
 import { mkdtempSync, writeFileSync, rmSync, existsSync, readFileSync } from "node:fs";
 import { capture } from "./snapshot-harness.js";
 import { assertSnapshot } from "./snapshot-assert.js";
@@ -30,7 +30,7 @@ function session(shell, run) {
       writeFileSync(join(cwd, file), scripts[file]);
     }
     const input = run(scripts, cwd);
-    const result = spawnSync(
+    const result = runShell(
       executables[shell],
       shell === "bash" ? ["--noprofile", "--norc"] : shell === "zsh" ? ["-f"] : ["--no-config"],
       {

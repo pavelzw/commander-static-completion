@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { runShell } from "./shell-process.js";
 import { assertSnapshot, assertShellSnapshot } from "./snapshot-assert.js";
 import { executables } from "./helpers.js";
 import {
@@ -122,14 +122,14 @@ const cases = [
   ["ambiguous", "csc-test-cli deploy --color <TAB><TAB>"],
 ];
 const versionedCases = new Set(["editing-empty-quoted-value", "editing-closed-quote"]);
-const bashRelease = execFileSync(
+const bashRelease = runShell(
   executables.bash,
   ["-c", 'printf "%s.%s" "${BASH_VERSINFO[0]}" "${BASH_VERSINFO[1]}"'],
   {
     encoding: "utf8",
     timeout: 5000,
   },
-).trim();
+).stdout.trim();
 const bashVersion = bashRelease.split(".")[0];
 for (const [name, input, makeProgram] of cases) {
   test(`interactive snapshot: ${name}`, async () => {

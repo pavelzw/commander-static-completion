@@ -1,3 +1,4 @@
+import { cleanupWorker, killGroup, diagnostic } from "./shell-process.js";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import {
@@ -111,6 +112,7 @@ bind 'set page-completions off'
 bind 'set completion-query-items 0'
 _mark() { ${shellCheck}\n[[ $COMP_WORDBREAKS == "$_csc_word_breaks" ]] || printf changed > word-breaks-changed; printf '${done}'; }
 bind -x '"\\C-x\\C-g":_mark'
+node() { printf invoked > invoked; }
 csc-test-cli() { printf invoked > invoked; }
 PATH=/nonexistent
 ${shellSetup}
@@ -130,6 +132,7 @@ zstyle ':completion:*' list-colors ''
 _mark() { ${shellCheck}\nprintf '${done}'; }
 zle -N _mark
 bindkey '^X^G' _mark
+node() { printf invoked > invoked; }
 csc-test-cli() { printf invoked > invoked; }
 PATH=/nonexistent
 ${shellSetup}
@@ -146,6 +149,7 @@ function fish_right_prompt; end
 function fish_title; end
 function _mark; ${shellCheck}\nprintf '${done}'; end
 bind ctrl-x,ctrl-g _mark
+function node; printf invoked > invoked; end
 function csc-test-cli; printf invoked > invoked; end
 set -gx PATH /nonexistent
 ${shellSetup}
@@ -207,16 +211,14 @@ exit 0
 `;
     const locale = pathFixture ? (process.platform === "darwin" ? "en_US.UTF-8" : "C.UTF-8") : "C";
     const result = await runDriver(driver, cwd, timeoutMs, locale);
-    assert.equal(
-      result.status,
-      0,
-      `${shell}: ${input}\n${result.error ?? ""}\n${result.stderr}\n${result.stdout}`,
-    );
+    if (result.error || result.status !== 0) {
+      assert.fail(diagnostic(executable, { shell, input, driver: executables.zsh }, result));
+    }
     assert.match(result.stdout, /CSC_DONE/, "Shell did not acknowledge the capture key");
     assert.equal(
       existsSync(join(cwd, "invoked")),
       false,
-      `Completion invoked the CLI: ${JSON.stringify(result.stdout)}`,
+      `Completion invoked the CLI or Node: ${JSON.stringify(result.stdout)}`,
     );
     assert.equal(existsSync(join(cwd, "PWNED")), false, "Completion executed filename text");
     assert.equal(
@@ -319,26 +321,9 @@ function runDriver(input, cwd, timeoutMs, locale) {
       stderr = "",
       error;
     const stop = (reason) => {
-      error = reason;
-      try {
-        const pid = Number(readFileSync(join(cwd, "worker.pid"), "utf8"));
-        if (Number.isInteger(pid) && pid > 1) {
-          try {
-            process.kill(-pid, "SIGKILL");
-          } catch {
-            process.kill(pid, "SIGKILL");
-          }
-        }
-      } catch {
-        /* Worker may already have exited. */
-      }
-      if (child.pid) {
-        try {
-          process.kill(-child.pid, "SIGKILL");
-        } catch {
-          /* Driver may already have exited. */
-        }
-      }
+      error ??= reason;
+      cleanupWorker(join(cwd, "worker.pid"));
+      killGroup(child.pid);
     };
     const timer = setTimeout(
       () => stop(`Shell snapshot timed out after ${timeoutMs} ms`),
@@ -361,10 +346,12 @@ function runDriver(input, cwd, timeoutMs, locale) {
     child.stdin.on("error", (err) => {
       error ??= err.message;
     });
-    child.on("close", (status) => {
+    child.on("close", (status, signal) => {
+      cleanupWorker(join(cwd, "worker.pid"));
+      killGroup(child.pid);
       clearTimeout(timer);
       protocol.dispose();
-      resolve({ status, stdout, stderr, error });
+      resolve({ status, signal, stdout, stderr, error });
     });
     child.stdin.end(input);
   });

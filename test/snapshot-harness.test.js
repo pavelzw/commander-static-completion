@@ -24,7 +24,7 @@ test("snapshot startup timeouts retain diagnostics and terminate the PTY worker"
     const executable = join(cwd, "stalled shell");
     writeFileSync(
       executable,
-      `#!/bin/sh\nprintf '%s' "$$" > ${quote(pidFile)}\nprintf 'intentional startup stall'\nexec /bin/sleep 30\n`,
+      `#!/bin/sh\nif [ "$1" = --version ]; then echo "stalled shell 1.0"; exit 0; fi\nprintf '%s' "$$" > ${quote(pidFile)}\nprintf 'intentional startup stall'\nexec /bin/sleep 30\n`,
       { mode: 0o755 },
     );
     await assert.rejects(
@@ -32,6 +32,8 @@ test("snapshot startup timeouts retain diagnostics and terminate the PTY worker"
       (error) => {
         assert.match(error.message, /timed out/);
         assert.match(error.message, /intentional startup stall/);
+        assert.match(error.message, /stalled shell 1.0/);
+        assert.match(error.message, /csc-test-cli dep<TAB>/);
         return true;
       },
     );
@@ -95,3 +97,12 @@ exec /bin/sleep 30
     rmSync(cwd, { recursive: true, force: true });
   }
 });
+
+for (const shell of ["bash", "zsh", "fish"]) {
+  test(`${shell}: snapshot execution guard detects Node`, async () => {
+    await assert.rejects(
+      capture(shell, fixture(), "csc-test-cli dep<TAB>", { shellSetup: "node" }),
+      /Completion invoked the CLI or Node/,
+    );
+  });
+}

@@ -81,8 +81,9 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
       script workflow, with installation tests.
 - [x] Verify caller variables, shell settings, and unrelated registrations in
       persistent-shell and native loading tests, with CLI/Node execution guards.
-- [ ] Extend shell-state and execution guards to the remaining native test harnesses.
-- [ ] Make remaining harness failures portable and actionable: timeouts, shell availability,
+- [x] Extend CLI/Node execution guards to the remaining native test harnesses.
+- [ ] Extend caller shell-state assertions to the older Readline and ZLE harnesses.
+- [x] Make remaining harness failures portable and actionable: timeouts, shell availability,
       executable overrides (including Bash), and pseudo-terminal cleanup.
 - [x] Add native interactive screen snapshots for Bash, Zsh, and Fish, with shared
       keystroke inputs, cursor positions, visible suggestions, and explicit local updates.

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { runShell } from "./shell-process.js";
 import { Command, Option, Argument } from "commander";
 import { generateCompletion } from "../dist/index.js";
 import { complete, executables, quote } from "./helpers.js";
@@ -30,7 +30,7 @@ function describedComplete(shell, program, words) {
     }`.replaceAll("__DOLLAR__", "$");
     input = `compdef() { :; }\n${script}\n${capture}\nPATH=/nonexistent\nwords=(${words.map(quote).join(" ")})\nCURRENT=${words.length}\nPREFIX=${quote(words.at(-1))}\n${fn}\n`;
   }
-  const result = spawnSync(executables[shell], shell === "fish" ? ["--no-config"] : ["-f"], {
+  const result = runShell(executables[shell], shell === "fish" ? ["--no-config"] : ["-f"], {
     input,
     encoding: "utf8",
     timeout: 15000,

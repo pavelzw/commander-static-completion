@@ -319,7 +319,7 @@ and automatic import sorting is disabled.
 Tests use `/bin/bash`, plus Zsh and Fish on PATH. Set `TEST_BASH`, `TEST_ZSH`, or
 `TEST_FISH` to override their executable paths. Tests cover generated shell syntax, command context,
 quoting, choices, and filesystem hints. Scanner tests disable external commands
-and provide a CLI stub that reports any invocation. Fish tests use `complete -C`;
+and provide CLI and Node stubs that report any invocation. Fish tests use `complete -C`;
 Bash Readline and Zsh ZLE tests use pseudo-terminals to verify actual Tab
 insertion, including quoting and attached file values. Bash also covers directory
 suffixes, unfinished quotes, escaped spaces, and completion before later arguments. A shared behavior
@@ -328,6 +328,15 @@ definitions with probe value parsers and compares the declaration receiving the
 next token with the shell's suggestions. These probes test value ownership and
 parsing boundaries; they intentionally replace value-validation callbacks and
 do not establish equivalence for every possible CLI definition or input.
+
+Shell subprocesses have a 15-second deadline and bounded output. Failures report
+executable/version, test input, exit status/signal, and captured output. PTY drivers
+stream startup output so timeouts retain diagnostics. Cleanup kills driver and
+worker process groups, including descendants. The npm test commands run test files
+serially to limit simultaneous shells on CI; there are no automatic retries. To
+investigate concurrency, run `node --test --test-concurrency=4 test/*.test.js`
+after building. Serial execution reduces contention but does not establish the
+cause of earlier intermittent Fish timeouts.
 
 Interactive snapshots live in `test/snapshots/`, with shared input cases in
 `test/snapshots.test.js`. Each case has one `.snap` file containing Bash, Fish,

@@ -1,7 +1,7 @@
 import { complete as completeShell } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { runShell, ptyReadUntil } from "./shell-process.js";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -16,7 +16,7 @@ const complete = (shell, words, cwd) => completeShell(shell, fixture(), words, {
 for (const shell of ["zsh", "fish"]) {
   test(`${shell}: syntax and completion context`, () => {
     const script = generateCompletion(fixture(), { shell });
-    const result = spawnSync(executables[shell], ["-n"], { input: script, encoding: "utf8" });
+    const result = runShell(executables[shell], ["-n"], { input: script, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr);
   });
 }
@@ -57,11 +57,15 @@ for (const loading of ["source", "autoload"]) {
         mkdirSync(directory, { recursive: true });
         const path = join(directory, "_csc-test-cli");
         writeFileSync(path, generateCompletion(fixture(), { shell: "zsh" }));
-        const setup = `fpath=(${quote(directory)} "\${fpath[@]}")\nautoload -Uz compinit\ncompinit -D -u\n${loading === "source" ? `source ${quote(path)}` : ""}\ncsc-test-cli() { print -r -- 'CLI WAS INVOKED' > invoked; }\nPATH=/nonexistent\n_capture() { zle expand-or-complete; print -rn -- "$BUFFER" > result; print -r -- CSC_DONE; }\nzle -N _capture\nbindkey '^I' _capture\nprint -r -- CSC_READY\n`;
+        const setup = `fpath=(${quote(directory)} "\${fpath[@]}")\nautoload -Uz compinit\ncompinit -D -u\n${loading === "source" ? `source ${quote(path)}` : ""}\nnode() { print invoked > invoked; }\ncsc-test-cli() { print -r -- 'CLI WAS INVOKED' > invoked; }\nPATH=/nonexistent\n_capture() { zle expand-or-complete; print -rn -- "$BUFFER" > result; print -r -- CSC_DONE; }\nzle -N _capture\nbindkey '^I' _capture\nprint -r -- CSC_READY\n`;
         writeFileSync(join(cwd, "setup.zsh"), setup);
-        const driver = `zmodload zsh/zpty\nzpty worker ${quote(executables.zsh)} -f -i\nzpty -r worker output '*CSC_PROMPT*'\nzpty -w -n worker ${quote("source ./setup.zsh\r")}\nzpty -r worker output '*CSC_READY*'\nzpty -w -n worker ${quote(line + "\t")}\nzpty -r worker output '*CSC_DONE*'\nprint -r -- "$output"\nzpty -d worker\n[[ -f result && ! -f invoked ]]\n`;
-        const result = spawnSync(executables.zsh, ["-f"], {
+        const driver = `set -e
+${ptyReadUntil}
+zmodload zsh/zpty\nzpty -b worker /bin/sh -c ${quote(`echo $$ > worker.pid; exec ${quote(executables.zsh)} -f -i`)}\n_until CSC_PROMPT\nzpty -w -n worker ${quote("source ./setup.zsh\r")}\n_until CSC_READY\nzpty -w -n worker ${quote(line + "\t")}\n_until CSC_DONE\nprint -r -- "$output"\nzpty -d worker\n[[ -f result && ! -f invoked && ! -f PWNED ]]\n`;
+        const result = runShell(executables.zsh, ["-f"], {
           input: driver,
+          context: line,
+          workerFile: join(cwd, "worker.pid"),
           encoding: "utf8",
           cwd,
           timeout: 15000,
@@ -98,7 +102,7 @@ for executable in ${names.map(quote).join(" ")}; do
   "\${_comps[$executable]}"
 done
 `;
-    const result = spawnSync(executables.zsh, ["-f"], {
+    const result = runShell(executables.zsh, ["-f"], {
       cwd,
       input,
       encoding: "utf8",

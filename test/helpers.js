@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { runShell } from "./shell-process.js";
 import { generateCompletion } from "../dist/index.js";
 
 export const shells = ["bash", "zsh", "fish"];
@@ -15,9 +15,10 @@ const fishQuote = (s) => "'" + s.replaceAll("\\", "\\\\").replaceAll("'", "\\'")
 function bashComplete(program, words, { cwd, breaks = " \t\n\"'@><=;|&(:" } = {}) {
   const script = generateCompletion(program, { shell: "bash" });
   const fn = script.match(/complete .*?-F (\w+)/)[1];
-  const result = spawnSync(bash, ["--noprofile", "--norc"], {
+  const result = runShell(bash, ["--noprofile", "--norc"], {
     cwd,
-    input: `${script}\ncsc-test-cli() { echo 'CLI WAS INVOKED' >&2; return 99; }\nPATH=/nonexistent\nCOMP_WORDS=(${words.map(quote).join(" ")})\nCOMP_CWORD=${words.length - 1}\nCOMP_WORDBREAKS=${quote(breaks)}\n${fn}\nif ((${"${#COMPREPLY[@]}"})); then printf '%s\\0' "${"${COMPREPLY[@]}"}"; fi\n`,
+    context: words,
+    input: `${script}\nnode() { echo 'NODE WAS INVOKED' >&2; return 99; }\ncsc-test-cli() { echo 'CLI WAS INVOKED' >&2; return 99; }\nPATH=/nonexistent\nCOMP_WORDS=(${words.map(quote).join(" ")})\nCOMP_CWORD=${words.length - 1}\nCOMP_WORDBREAKS=${quote(breaks)}\n${fn}\nif ((${"${#COMPREPLY[@]}"})); then printf '%s\\0' "${"${COMPREPLY[@]}"}"; fi\n`,
     encoding: "utf8",
     timeout: 15000,
     killSignal: "SIGKILL",
@@ -40,14 +41,15 @@ function otherComplete(shell, program, words, cwd) {
     const line = words
       .map((word, index) => (index === words.length - 1 && word === "" ? "" : fishQuote(word)))
       .join(" ");
-    input = `set -g fish_complete_path\n${script}\nfunction csc-test-cli; echo 'CLI WAS INVOKED' >&2; end\nset -gx PATH /nonexistent\ncomplete -C ${fishQuote(line)}\n`;
+    input = `set -g fish_complete_path\n${script}\nfunction node; echo 'NODE WAS INVOKED' >&2; end\nfunction csc-test-cli; echo 'CLI WAS INVOKED' >&2; end\nset -gx PATH /nonexistent\ncomplete -C ${fishQuote(line)}\n`;
   } else {
     // Test scanner output directly; the separate ZLE test covers native registration.
     const fn = script.match(/^\s*compdef (\w+)/m)[1];
-    input = `compdef() { :; }\n${script}\ncompadd() { while [[ $1 != -- ]]; do shift; done; shift; printf '%s\\n' "$@"; }\ncsc-test-cli() { echo 'CLI WAS INVOKED' >&2; }\nPATH=/nonexistent\nwords=(${words.map(quote).join(" ")})\nCURRENT=${words.length}\nPREFIX=${quote(words.at(-1))}\n${fn}\n`;
+    input = `compdef() { :; }\n${script}\ncompadd() { while [[ $1 != -- ]]; do shift; done; shift; printf '%s\\n' "$@"; }\nnode() { echo 'NODE WAS INVOKED' >&2; return 99; }\ncsc-test-cli() { echo 'CLI WAS INVOKED' >&2; }\nPATH=/nonexistent\nwords=(${words.map(quote).join(" ")})\nCURRENT=${words.length}\nPREFIX=${quote(words.at(-1))}\n${fn}\n`;
   }
-  const result = spawnSync(executables[shell], shell === "fish" ? ["--no-config"] : ["-f"], {
+  const result = runShell(executables[shell], shell === "fish" ? ["--no-config"] : ["-f"], {
     input,
+    context: words,
     encoding: "utf8",
     timeout: 15000,
     killSignal: "SIGKILL",
