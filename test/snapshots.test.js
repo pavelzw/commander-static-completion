@@ -10,7 +10,16 @@ import { capture } from "./snapshot-harness.js";
 
 const cases = [
   ["descriptions-commands", "csc-test-cli s<TAB><TAB>", descriptionFixture],
-  ["descriptions-options", "csc-test-cli --<TAB><TAB>", descriptionFixture],
+  [
+    "descriptions-options",
+    "csc-test-cli --<TAB><TAB>",
+    () => {
+      // Two entries avoid version-specific Fish alignment of multi-row descriptions.
+      const program = descriptionFixture().helpOption(false);
+      program.commands[0].helpOption(false);
+      return program;
+    },
+  ],
   ["descriptions-values", "csc-test-cli serve --format <TAB><TAB>", descriptionFixture],
   ["descriptions-arguments", "csc-test-cli serve a<TAB><TAB>", descriptionFixture],
   ["optional-cluster-boolean", "csc-test-cli -ov ap<TAB>", optionalClusterSnapshotFixture],
