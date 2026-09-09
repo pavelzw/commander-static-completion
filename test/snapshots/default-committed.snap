@@ -1,0 +1,17 @@
+Input: csc-test-cli app --port 8<TAB>
+
+Shell: bash
+
+> csc-test-cli app --port 8080 ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli app --port 8080 ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli app --port 8080 ▏

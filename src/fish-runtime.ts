@@ -23,6 +23,8 @@ function __PREFIX___scan
     set -l pending_variadic 0
     set -l info
     set -l lead ''
+    set -l cluster_prefix ''
+    set -l alternatives
 
     set -l tokens $argv[2..-1]
     while true
@@ -50,9 +52,17 @@ function __PREFIX___scan
             end
             if test $operands -eq 0
                 set -l next (__PREFIX___child $state "$word")
+                set -l consume 1
+                if test "$next" = -1; and test "$settings[4]" != -1
+                    set next $settings[4]
+                    set consume 0
+                end
                 if test "$next" != -1
                     set state $next
                     set position 0
+                    if test $consume -eq 0
+                        set index (math $index - 1)
+                    end
                     set tokens $tokens[$index..-1]
                     set dispatched 1
                     break
@@ -68,7 +78,41 @@ function __PREFIX___scan
             end
         end
         if test $dispatched -eq 0
-            break
+            if test $operands -ne 0; or test "$settings[4]" = -1
+                break
+            end
+            if test $ended -eq 0; and string match -qr -- '^-.+' "$current"
+                if string match -q -- '--*' "$current"
+                    set -l flag (string split -m 1 = -- "$current")[1]
+                    set info (__PREFIX___option $state "$flag")
+                else
+                    set -l rest (string sub -s 2 -- "$current")
+                    set -l consumed ''
+                    while test -n "$rest"
+                        set -l letter (string sub -l 1 -- "$rest")
+                        set info (__PREFIX___option $state "-$letter")
+                        if test "$info[1]" = unknown
+                            set cluster_prefix "$cluster_prefix$consumed"
+                            set current "-$rest"
+                            break
+                        end
+                        if test "$info[1]" != boolean
+                            break
+                        end
+                        set consumed "$consumed$letter"
+                        set rest (string sub -s 2 -- "$rest")
+                    end
+                end
+                if test "$info[1]" != unknown
+                    break
+                end
+            end
+            set -a alternatives (__PREFIX___commands $state)
+            if test $ended -eq 0
+                set -a alternatives (__PREFIX___flags $state)
+            end
+            set state $settings[4]
+            set tokens
         end
     end
 
@@ -105,14 +149,24 @@ function __PREFIX___scan
     end
 
     if test $value -lt 0
+        set -l suggestions $alternatives
         if test $operands -eq 0
-            __PREFIX___commands $state
+            set -a suggestions (__PREFIX___commands $state)
         end
         if test $ended -eq 0
-            __PREFIX___flags $state
+            set -a suggestions (__PREFIX___flags $state)
+        end
+        for candidate in $suggestions
+            if test -n "$cluster_prefix"; and string match -qr -- '^-[^-]' "$candidate"
+                set candidate "-$cluster_prefix"(string sub -s 2 -- "$candidate")
+            end
+            printf '%s\n' "$candidate"
         end
         set info (__PREFIX___argument $state $position)
         set value $info[1]
+    end
+    if test -n "$cluster_prefix"; and test -n "$lead"
+        set lead "-$cluster_prefix"(string sub -s 2 -- "$lead")
     end
     for candidate in (__PREFIX___values $value)
         printf '%s\n' "$lead$candidate"
@@ -195,9 +249,9 @@ function __PREFIX___filter
             end
             continue
         end
-        if test "$settings[3]" = 1; and test $seen -eq 0
+        if begin; test "$settings[3]" = 1; or test "$settings[1]" = 1; end; and test $seen -eq 0
             set -l next (__PREFIX___child $state "$token")
-            if test "$next" != -1
+            if test "$next" != -1; or test "$settings[4]" != -1
                 set -a filtered $tokens[$original_index..-1]
                 break
             end

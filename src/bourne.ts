@@ -53,7 +53,7 @@ export function renderBourne(
     );
   }
   const functions = [
-    `${prefix}_settings() {\n case "$state" in\n${nodes.map((node) => `${node.id}) passthrough=${node.passThrough ? 1 : 0}; positional=${node.positional ? 1 : 0}; negative=${node.negativeNumbers ? 1 : 0} ;;`).join("\n")}\n esac\n}`,
+    `${prefix}_settings() {\n case "$state" in\n${nodes.map((node) => `${node.id}) passthrough=${node.passThrough ? 1 : 0}; positional=${node.positional ? 1 : 0}; negative=${node.negativeNumbers ? 1 : 0}; default_command=${node.defaultCommand} ;;`).join("\n")}\n esac\n}`,
     `${prefix}_local_option() {\n mode=; value=-1; variadic=0\n case "$state:$1" in\n${localCases.join("\n")}\n esac\n}`,
     `${prefix}_option() {\n mode=; value=-1; variadic=0\n case "$state:$1" in\n${optionCases.join("\n")}\n esac\n}`,
     `${prefix}_argument() {\n value=-1; variadic=0\n case "$state:$position" in\n${argumentCases.join("\n")}\n esac\n}`,

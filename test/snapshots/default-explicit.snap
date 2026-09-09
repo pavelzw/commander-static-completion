@@ -1,0 +1,17 @@
+Input: csc-test-cli admin --format j<TAB>
+
+Shell: bash
+
+> csc-test-cli admin --format json ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli admin --format json ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli admin --format json ▏

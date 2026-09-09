@@ -1,0 +1,17 @@
+Input: csc-test-cli --interval 5<TAB>
+
+Shell: bash
+
+> csc-test-cli --interval 5 ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli --interval 5 ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli --interval 5 ▏

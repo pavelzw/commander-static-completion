@@ -11,6 +11,7 @@ export interface ModelOption {
 }
 export interface ModelCommand {
   id: number;
+  defaultCommand: number;
   options: ModelOption[];
   passThrough: boolean;
   positional: boolean;
@@ -30,13 +31,6 @@ interface CommanderInternals {
 // Private Commander access is confined to this compatibility adapter.
 export function checkCompatibility(command: Command) {
   const internal = command as Command & CommanderInternals;
-  const unsupported: [keyof CommanderInternals, string][] = [
-    ["_defaultCommandName", "default subcommands"],
-  ];
-  for (const [key, label] of unsupported) {
-    if (internal[key])
-      throw new Error(`Static shell completion does not yet support ${label} (${command.name()}).`);
-  }
   if (internal._combineFlagAndOptionalValue === false) {
     throw new Error("Static shell completion requires combineFlagAndOptionalValue(true).");
   }
@@ -90,6 +84,7 @@ export function extract(program: Command): ModelCommand[] {
     }));
     const node: ModelCommand = {
       id: nodes.length,
+      defaultCommand: -1,
       options,
       localOptions,
       positional: internal._enablePositionalOptions ?? false,
@@ -110,6 +105,7 @@ export function extract(program: Command): ModelCommand[] {
       if (synthetic) {
         childNode = {
           id: nodes.length,
+          defaultCommand: -1,
           options: [],
           localOptions: [],
           passThrough: false,
@@ -136,11 +132,18 @@ export function extract(program: Command): ModelCommand[] {
             : [...inherited, ...localOptions.filter((option) => option.inherited)];
         childNode = visit(child, forwarded, hasDigit);
       }
+      if (!synthetic && child.name() === internal._defaultCommandName)
+        node.defaultCommand = childNode.id;
       node.children.push({
         id: childNode.id,
         names: [child.name(), ...child.aliases()],
         visible: visibleCommands.includes(child),
       });
+    }
+    if (internal._defaultCommandName && node.defaultCommand < 0) {
+      throw new Error(
+        `Default subcommand ${internal._defaultCommandName} is missing from ${command.name()}.`,
+      );
     }
     return node;
   }

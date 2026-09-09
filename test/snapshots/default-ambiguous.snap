@@ -1,0 +1,21 @@
+Input: csc-test-cli a<TAB><TAB>
+
+Shell: bash
+
+> csc-test-cli a
+admin   app     assets
+> csc-test-cli a▏
+
+---
+
+Shell: fish
+
+> csc-test-cli admin ▏
+admin  app  assets
+
+---
+
+Shell: zsh
+
+> csc-test-cli a▏
+admin   app     assets

@@ -122,8 +122,16 @@ as a short option in the command hierarchy. Attached variadic values such as
 `--tags=one` do not consume subsequent words. `--` ends option parsing, while
 command names that follow it can still select a subcommand, as in Commander.
 
-The generators currently reject default subcommands,
-`combineFlagAndOptionalValue(false)`, and executable subcommands.
+Default subcommands (`{ isDefault: true }`) are supported, including aliases and
+nested defaults. Before an operand selects a route, completions include explicit
+subcommands plus the default command's options and argument hints. An explicit
+command name takes priority once followed by a space; otherwise unmatched input
+is passed to the default without consuming its first argument. Parent option
+values still take precedence, and positional/pass-through settings determine
+where the parent stops parsing.
+
+The generators currently reject `combineFlagAndOptionalValue(false)` and
+executable subcommands.
 Supply ordinary in-process subcommand definitions for generation instead.
 These checks use a small isolated Commander compatibility adapter.
 

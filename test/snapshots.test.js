@@ -1,10 +1,18 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, writeFileSync } from "node:fs";
-import { fixture } from "./fixture.js";
+import { fixture, defaultSnapshotFixture } from "./fixture.js";
 import { capture } from "./snapshot-harness.js";
 
 const cases = [
+  ["default-ambiguous", "csc-test-cli a<TAB><TAB>", defaultSnapshotFixture],
+  ["default-option", "csc-test-cli --port 8<TAB>", defaultSnapshotFixture],
+  ["default-attached", "csc-test-cli --port=8<TAB>", defaultSnapshotFixture],
+  ["default-positional", "csc-test-cli ap<TAB>", defaultSnapshotFixture],
+  ["default-explicit", "csc-test-cli admin --format j<TAB>", defaultSnapshotFixture],
+  ["default-terminator", "csc-test-cli -- ap<TAB>", defaultSnapshotFixture],
+  ["default-committed", "csc-test-cli app --port 8<TAB>", defaultSnapshotFixture],
+  ["default-nested", "csc-test-cli --interval 5<TAB>", () => defaultSnapshotFixture(true)],
   ["ambiguous-subcommands", "csc-test-cli ta<TAB><TAB>"],
   ["no-match", "csc-test-cli zzz<TAB>"],
   ["nested-command", "csc-test-cli remote a<TAB>"],
@@ -22,13 +30,15 @@ const cases = [
   ["directory", "csc-test-cli deploy --config nest<TAB>"],
   ["ambiguous", "csc-test-cli deploy --color <TAB><TAB>"],
 ];
-for (const [name, input] of cases) {
+for (const [name, input, makeProgram] of cases) {
   test(`interactive snapshot: ${name}`, async () => {
     const sections = [];
     for (const shell of ["bash", "fish", "zsh"]) {
-      const program = fixture();
-      program.command("tasks");
-      program.command("tags");
+      const program = makeProgram ? makeProgram() : fixture();
+      if (!makeProgram) {
+        program.command("tasks");
+        program.command("tags");
+      }
       sections.push(`Shell: ${shell}\n\n${await capture(shell, program, input)}`);
     }
     const actual = `Input: ${input}\n\n${sections.join("\n---\n\n")}`;

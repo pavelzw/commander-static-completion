@@ -24,3 +24,18 @@ export function fixture() {
   program.command("internal", { hidden: true });
   return program;
 }
+
+export function defaultSnapshotFixture(nested = false) {
+  const program = new Command("csc-test-cli").enablePositionalOptions();
+  program.option("--verbose");
+  const serve = program.command("serve", { isDefault: true }).alias("s");
+  serve.addOption(new Option("--port <port>").choices(["3000", "8080"]));
+  serve.addArgument(new Argument("[paths...]").choices(["app", "assets"]));
+  program.command("admin").addOption(new Option("--format <format>").choices(["json", "text"]));
+  if (nested) {
+    serve
+      .command("watch", { isDefault: true })
+      .addOption(new Option("--interval <seconds>").choices(["1", "5"]));
+  }
+  return program;
+}

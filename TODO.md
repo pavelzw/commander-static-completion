@@ -39,7 +39,7 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
 - [x] Support `enablePositionalOptions()` with the correct option scope.
 - [x] Support `passThroughOptions()` and stop suggesting owned options at the
       correct boundary.
-- [ ] Support default subcommands without misclassifying positional arguments.
+- [x] Support default subcommands without misclassifying positional arguments.
 - [ ] Support `combineFlagAndOptionalValue(false)`.
 - [ ] Design an explicit way to supply definitions for executable subcommands;
       do not launch those executables during completion or scrape their help text.

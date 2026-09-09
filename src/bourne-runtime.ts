@@ -3,11 +3,11 @@ export function bourneRuntime(shell: "bash" | "zsh"): string {
   return `${filterRuntime}\n__PREFIX__() {
 ${shell === "zsh" ? zshInput : ""}
   local state=0 position=0 operands=0 end=0 pending= pending_value=-1 pending_variadic=0
-  local passthrough positional negative join_next=0
+  local passthrough positional negative default_command consume join_next=0
   local number_pattern='^-([0-9]+|[0-9]*[.][0-9]+)(e[+-]?[0-9]+)?$'
   local mode value=-1 variadic=0 next kind word current flag rest attached
-  local i j count=0 candidate lead= raw_current="\${COMP_WORDS[COMP_CWORD]}"
-  local -a tokens candidates flags
+  local i j count=0 candidate lead= cluster_prefix= raw_current="\${COMP_WORDS[COMP_CWORD]}"
+  local -a tokens candidates flags alternatives
   COMPREPLY=()
   __PREFIX___settings
 
@@ -33,9 +33,11 @@ ${shell === "zsh" ? zshInput : ""}
     if (( ! end )) && [[ $word == -- ]]; then end=1; continue; fi
     if ((operands == 0)); then
       __PREFIX___child "$word"
+      consume=1
+      if [[ -z $next ]] && ((default_command >= 0)); then next=$default_command; consume=0; fi
       if [[ -n $next ]]; then
         state=$next; position=0
-        tokens=("\${tokens[@]:$((i+1))}")
+        tokens=("\${tokens[@]:$((i+consume))}")
         count=\${#tokens[@]}; i=-1
         __PREFIX___settings
         __PREFIX___filter
@@ -46,6 +48,34 @@ ${shell === "zsh" ? zshInput : ""}
     if ((passthrough)); then end=1; fi
     __PREFIX___argument
     if (( ! variadic )); then ((position+=1)); fi
+  done
+
+  # Until an operand commits a route, offer explicit commands and the default
+  # command's initial completions. A known parent option still owns its value.
+  while ((operands == 0 && default_command >= 0)) && [[ -z $pending ]]; do
+    if (( ! end )) && [[ $current == -?* ]]; then
+      if [[ $current == --* ]]; then
+        __PREFIX___option "\${current%%=*}"
+      else
+        rest=\${current:1}; attached=
+        while [[ -n $rest ]]; do
+          __PREFIX___option "-\${rest:0:1}"
+          if [[ -z $mode ]]; then
+            cluster_prefix+=$attached
+            current=-$rest
+            break
+          fi
+          [[ $mode != boolean ]] && break
+          attached+=\${rest:0:1}; rest=\${rest:1}
+        done
+      fi
+      [[ -n $mode ]] && break
+    fi
+    __PREFIX___suggestions
+    alternatives+=("\${candidates[@]}")
+    if (( ! end )); then alternatives+=("\${flags[@]}"); fi
+    state=$default_command
+    __PREFIX___settings
   done
 
   value=-1
@@ -76,13 +106,18 @@ ${shell === "bash" ? bashUnquote : ""}
     __PREFIX___suggestions
     if ((operands > 0)); then candidates=(); fi
     if (( ! end )); then candidates+=("\${flags[@]}"); fi
-    local -a base=("\${candidates[@]}")
+    local -a base=("\${alternatives[@]}" "\${candidates[@]}")
     __PREFIX___argument
     __PREFIX___values
     candidates=("\${base[@]}" "\${candidates[@]}")
   fi
+  if [[ -n $cluster_prefix && -n $lead ]]; then lead=-$cluster_prefix\${lead#-}; fi
   for candidate in "\${candidates[@]}"; do
-    [[ $candidate == "$current"* ]] && COMPREPLY+=("$lead$candidate")
+    [[ $candidate == "$current"* ]] || continue
+    if [[ -n $cluster_prefix && -z $lead && $candidate == -?* && $candidate != --* ]]; then candidate=-$cluster_prefix\${candidate#-}; fi
+    local duplicate=0 existing
+    for existing in "\${COMPREPLY[@]}"; do [[ $existing == "$lead$candidate" ]] && duplicate=1; done
+    ((duplicate)) || COMPREPLY+=("$lead$candidate")
   done
 ${shell === "bash" ? bashFiles : zshOutput}
   return 0
@@ -204,9 +239,9 @@ const filterRuntime = `__PREFIX___filter() {
       fi
       continue
     fi
-    if ((positional && seen == 0)); then
+    if (((positional || passthrough) && seen == 0)); then
       __PREFIX___child "$token"
-      if [[ -n $next ]]; then
+      if [[ -n $next ]] || ((default_command >= 0)); then
         filtered+=("\${tokens[@]:$p:$((count-1-p))}")
         break
       fi

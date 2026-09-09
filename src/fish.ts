@@ -74,7 +74,7 @@ export function renderFish(nodes: ModelCommand[], executable: string, prefix: st
       "$argv[1]",
       nodes.map(
         (node) =>
-          `case ${node.id}\n ${print([node.passThrough ? "1" : "0", node.negativeNumbers ? "1" : "0", node.positional ? "1" : "0"])}`,
+          `case ${node.id}\n ${print([node.passThrough ? "1" : "0", node.negativeNumbers ? "1" : "0", node.positional ? "1" : "0", String(node.defaultCommand)])}`,
       ),
     ),
     helper("local_option", "$argv[1]:$argv[2]", localCases, ["unknown", "-1", "0"]),
