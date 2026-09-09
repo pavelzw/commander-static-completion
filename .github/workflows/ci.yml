@@ -60,6 +60,9 @@ jobs:
       - name: Build the minimum Fish version
         if: matrix.fish == '4.0.0'
         run: |
+          rustup toolchain install 1.85.0 --profile minimal
+          rustup default 1.85.0
+          rustc --version
           curl --fail --location --retry 3 \
             https://github.com/fish-shell/fish-shell/releases/download/4.0.0/fish-4.0.0.tar.xz \
             --output "$RUNNER_TEMP/fish.tar.xz"

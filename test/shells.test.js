@@ -15,8 +15,10 @@ function complete(shell, words, cwd) {
   const script = generateCompletion(fixture(), { shell });
   let input;
   if (shell === 'fish') {
+    // Newer Fish ships completions for the real SQL client named mycli.
+    // Isolate our fixture from bundled/user completions, but retain native helpers.
     const line = words.map((word, index) => index === words.length - 1 && word === '' ? '' : fishQuote(word)).join(' ');
-    input = `${script}\nfunction mycli; echo 'CLI WAS INVOKED' >&2; end\nset -gx PATH /nonexistent\ncomplete -C ${fishQuote(line)}\n`;
+    input = `set -g fish_complete_path\n${script}\nfunction mycli; echo 'CLI WAS INVOKED' >&2; end\nset -gx PATH /nonexistent\ncomplete -C ${fishQuote(line)}\n`;
   } else {
     // Test scanner output directly; the separate ZLE test covers native registration.
     const fn = script.match(/compdef (\w+)/)[1];
