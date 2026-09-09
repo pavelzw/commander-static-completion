@@ -1,0 +1,2 @@
+# Keep snapshots portable and identify generated output in GitHub diffs.
+*.snap text eol=lf linguist-generated=true

@@ -1,0 +1,17 @@
+Input: csc-test-cli help rem<TAB>
+
+Shell: bash
+
+> csc-test-cli help remote ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli help remote ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli help remote ▏

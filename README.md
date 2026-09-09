@@ -188,7 +188,8 @@ parsing boundaries; they intentionally replace value-validation callbacks and
 do not establish equivalence for every possible CLI definition or input.
 
 Interactive snapshots live in `test/snapshots/`, with shared input cases in
-`test/snapshots.test.js`. Run `npm run test:snapshots` to compare them, or
+`test/snapshots.test.js`. Each case has one `.snap` file containing Bash, Fish,
+and Zsh sections separated by `---`. Run `npm run test:snapshots` to compare them, or
 `npm run test:snapshots:update` to regenerate them locally, then review the diff.
 Missing snapshots fail normal tests; updates are disabled in CI. `npm test`
 includes snapshot comparisons automatically.
@@ -197,8 +198,24 @@ Inputs use `<TAB>`, `<LEFT>`, `<RIGHT>`, `<HOME>`, `<END>`, and `<BACKSPACE>`;
 `<LEFT:11>` repeats a key eleven times. For example:
 
 ```text
-Shell: zsh
 Input: csc-test-cli ta<TAB><TAB>
+
+Shell: bash
+
+> csc-test-cli ta
+tags   tasks
+> csc-test-cli ta▏
+
+---
+
+Shell: fish
+
+> csc-test-cli tasks ▏
+tasks  tags
+
+---
+
+Shell: zsh
 
 > csc-test-cli ta▏
 tags   tasks

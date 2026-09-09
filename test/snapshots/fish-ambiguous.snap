@@ -1,5 +1,0 @@
-Shell: fish
-Input: csc-test-cli deploy --color <TAB><TAB>
-
-> csc-test-cli deploy --color red ▏
-red  blue

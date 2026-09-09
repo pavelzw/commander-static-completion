@@ -1,0 +1,17 @@
+Input: csc-test-cli deploy --config two<TAB>
+
+Shell: bash
+
+> csc-test-cli deploy --config two\ words.json ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli deploy --config two\ words.json ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli deploy --config two\ words.json ▏

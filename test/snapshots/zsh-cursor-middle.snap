@@ -1,4 +1,0 @@
-Shell: zsh
-Input: csc-test-cli deploy --target pr --no-cache<LEFT:11><TAB>
-
-> csc-test-cli deploy --target production ▏ --no-cache

@@ -22,34 +22,35 @@ const cases = [
   ["directory", "csc-test-cli deploy --config nest<TAB>"],
   ["ambiguous", "csc-test-cli deploy --color <TAB><TAB>"],
 ];
-for (const shell of ["bash", "zsh", "fish"]) {
-  test(`${shell}: interactive snapshots`, async (t) => {
-    for (const [name, input] of cases)
-      await t.test(name, async () => {
-        const program = fixture();
-        program.command("tasks");
-        program.command("tags");
-        const actual = `Shell: ${shell}\nInput: ${input}\n\n${await capture(shell, program, input)}`;
-        const path = new URL(`./snapshots/${shell}-${name}.snap`, import.meta.url);
-        if (process.env.UPDATE_SNAPSHOTS === "1") {
-          assert.ok(!process.env.CI, "Snapshot updates are disabled in CI");
-          writeFileSync(path, actual);
-        } else {
-          let expected;
-          try {
-            expected = readFileSync(path, "utf8");
-          } catch (error) {
-            if (error.code !== "ENOENT") throw error;
-            assert.fail(
-              `Missing snapshot: ${path.pathname}. Run npm run test:snapshots:update and review the diff.`,
-            );
-          }
-          assert.equal(
-            actual,
-            expected,
-            `Snapshot changed: ${path.pathname}. Review before running npm run test:snapshots:update.`,
-          );
-        }
-      });
+for (const [name, input] of cases) {
+  test(`interactive snapshot: ${name}`, async () => {
+    const sections = [];
+    for (const shell of ["bash", "fish", "zsh"]) {
+      const program = fixture();
+      program.command("tasks");
+      program.command("tags");
+      sections.push(`Shell: ${shell}\n\n${await capture(shell, program, input)}`);
+    }
+    const actual = `Input: ${input}\n\n${sections.join("\n---\n\n")}`;
+    const path = new URL(`./snapshots/${name}.snap`, import.meta.url);
+    if (process.env.UPDATE_SNAPSHOTS === "1") {
+      assert.ok(!process.env.CI, "Snapshot updates are disabled in CI");
+      writeFileSync(path, actual);
+    } else {
+      let expected;
+      try {
+        expected = readFileSync(path, "utf8");
+      } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+        assert.fail(
+          `Missing snapshot: ${path.pathname}. Run npm run test:snapshots:update and review the diff.`,
+        );
+      }
+      assert.equal(
+        actual,
+        expected,
+        `Snapshot changed: ${path.pathname}. Review before running npm run test:snapshots:update.`,
+      );
+    }
   });
 }

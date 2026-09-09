@@ -1,6 +1,0 @@
-Shell: bash
-Input: csc-test-cli deploy --color <TAB><TAB>
-
-> csc-test-cli deploy --color
-blue  red
-> csc-test-cli deploy --color ▏

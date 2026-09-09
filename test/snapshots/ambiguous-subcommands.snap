@@ -1,0 +1,21 @@
+Input: csc-test-cli ta<TAB><TAB>
+
+Shell: bash
+
+> csc-test-cli ta
+tags   tasks
+> csc-test-cli ta▏
+
+---
+
+Shell: fish
+
+> csc-test-cli tasks ▏
+tasks  tags
+
+---
+
+Shell: zsh
+
+> csc-test-cli ta▏
+tags   tasks
