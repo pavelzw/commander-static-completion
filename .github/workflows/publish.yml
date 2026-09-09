@@ -1,0 +1,42 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - v*
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: npmjs
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: npm ci
+      - name: Check release tag and changelog
+        id: release
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: npm run check:release -- "$RELEASE_TAG"
+      - name: Publish package
+        env:
+          NPM_DIST_TAG: ${{ steps.release.outputs.dist-tag }}
+        run: npm publish --tag "$NPM_DIST_TAG"

@@ -7,5 +7,5 @@
     "noEmit": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["src/**/*.ts", "type-tests/**/*.ts", "scripts/**/*.ts"]
+  "include": ["src/**/*.ts", "type-tests/**/*.ts", "scripts/**/*.ts", "test/release.test.ts"]
 }

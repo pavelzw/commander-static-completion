@@ -2,12 +2,31 @@
   "name": "commander-static-completion",
   "version": "0.1.0",
   "description": "Generate standalone shell completions from Commander command definitions",
+  "keywords": [
+    "bash",
+    "cli",
+    "commander",
+    "completion",
+    "fish",
+    "shell",
+    "static-completion",
+    "zsh"
+  ],
+  "homepage": "https://github.com/pavelzw/commander-static-completion#readme",
+  "bugs": {
+    "url": "https://github.com/pavelzw/commander-static-completion/issues"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pavelzw/commander-static-completion.git"
+  },
   "files": [
     "dist",
     "src",
     "README.md",
-    "docs/commander-compatibility.md"
+    "docs/commander-compatibility.md",
+    "CHANGELOG.md"
   ],
   "type": "module",
   "exports": {
@@ -17,19 +36,25 @@
       "default": "./dist/index.js"
     }
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "build": "tsx scripts/build.ts",
-    "test": "npm run build && node --test test/*.test.js",
+    "test": "npm run build && node --test test/*.test.js && npm run test:release",
     "check": "tsc --noEmit",
     "example": "npm run build --silent && node examples/cli.js",
     "prepack": "npm run build",
     "lint": "oxlint --deny-warnings src scripts test examples type-tests",
     "test:package": "tsx scripts/validate-package.ts",
-    "validate": "npm run format:check && npm run lint && npm run check && npm test && npm run test:package",
+    "validate": "npm run format:check && npm run lint && npm run check && npm run check:release && npm test && npm run test:package",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "test:snapshots": "npm run build && node --test test/snapshots.test.js test/generated-snapshots.test.js",
-    "test:snapshots:update": "npm run build && UPDATE_SNAPSHOTS=1 node --test test/snapshots.test.js test/generated-snapshots.test.js"
+    "test:snapshots:update": "npm run build && UPDATE_SNAPSHOTS=1 node --test test/snapshots.test.js test/generated-snapshots.test.js",
+    "check:release": "tsx scripts/check-release.ts",
+    "test:release": "tsx --test test/release.test.ts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

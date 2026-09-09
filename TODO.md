@@ -19,10 +19,12 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
       Confirm declaration/source maps resolve to the packaged TypeScript source.
 - [x] Add Oxlint for library source, tooling, tests, and examples; fail CI on warnings.
 - [x] Add Oxfmt and format the TypeScript source and test harnesses; check formatting in CI.
-- [ ] Add package repository, homepage, bugs, and discovery metadata; document
+- [x] Add package repository, homepage, bugs, and discovery metadata; document
       installation and the supported ESM/CommonJS usage.
-- [ ] Establish a release checklist, changelog, versioning policy, and npm
-      publishing workflow. Verify package ownership and contents before publishing.
+- [x] Establish a release checklist, changelog, versioning policy, and npm
+      publishing workflow.
+- [ ] Complete initial npm publication and configure the trusted publisher before
+      the first automated release. Verify ownership and package contents when releasing.
 
 ## 2. Commander semantics
 

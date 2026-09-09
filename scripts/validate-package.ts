@@ -48,6 +48,7 @@ try {
   for (const required of [
     "package.json",
     "README.md",
+    "CHANGELOG.md",
     "docs/commander-compatibility.md",
     "LICENSE",
     "dist/index.js",
@@ -59,7 +60,7 @@ try {
   for (const file of files) {
     assert.ok(!file.includes("__stale"), `Stale output was packaged: ${file}`);
     assert.ok(
-      /^(dist\/|src\/.*\.ts$|package\.json$|README\.md$|docs\/commander-compatibility\.md$|LICENSE$)/u.test(
+      /^(dist\/|src\/.*\.ts$|package\.json$|README\.md$|CHANGELOG\.md$|docs\/commander-compatibility\.md$|LICENSE$)/u.test(
         file,
       ),
       `Unexpected packaged file: ${file}`,

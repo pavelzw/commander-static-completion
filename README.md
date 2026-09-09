@@ -10,7 +10,13 @@ JavaScript and generated TypeScript declarations.
 
 ## Installation and runnable example
 
-Before an npm release, build a tarball from this checkout with `npm ci` and
+After the initial release, install the package alongside Commander:
+
+```sh
+npm install commander commander-static-completion
+```
+
+Until then, build a tarball from this checkout with `npm ci` and
 `npm pack`. In your CLI project, install that tarball alongside Commander:
 
 ```sh
@@ -20,6 +26,30 @@ npm install commander /absolute/path/to/commander-static-completion-0.1.0.tgz
 Use `import { generateCompletion } from "commander-static-completion"` in ESM
 or `const { generateCompletion } = require("commander-static-completion")` in
 CommonJS on the supported Node versions. TypeScript declarations are included.
+
+A minimal ESM generator (`generate.mjs`, or `.js` in a `"type": "module"` project):
+
+```js
+import { Command, Option } from "commander";
+import { generateCompletion } from "commander-static-completion";
+
+const program = new Command("mycli");
+program.addOption(new Option("--target <name>").choices(["dev", "production"]));
+process.stdout.write(generateCompletion(program, { shell: "bash" }));
+```
+
+The same API works from CommonJS (`generate.cjs`):
+
+```js
+const { Command, Option } = require("commander");
+const { generateCompletion } = require("commander-static-completion");
+
+const program = new Command("mycli");
+program.addOption(new Option("--target <name>").choices(["dev", "production"]));
+process.stdout.write(generateCompletion(program, { shell: "bash" }));
+```
+
+The installed-tarball checks exercise both import styles and all three generators.
 
 The [runnable example and installation guide](https://github.com/pavelzw/commander-static-completion/blob/main/examples/README.md)
 shows a `mycli completions <shell>` command, per-user installation in all three
@@ -304,3 +334,11 @@ The internal pipeline separates typed Commander extraction from rendering.
 Bash and Zsh share a scanner with shell-specific completion output; Fish has a
 native scanner over the same model. All generator code and embedded shell
 templates live in TypeScript under `src/`.
+
+## Releases
+
+See the [changelog](CHANGELOG.md) and
+[release checklist](https://github.com/pavelzw/commander-static-completion/blob/main/docs/releasing.md).
+Pushing a `v<version>` tag starts the validation and npm-publishing workflow.
+Stable releases use `latest`; prereleases use `next`. npm trusted-publisher
+setup is required before automated publication.
