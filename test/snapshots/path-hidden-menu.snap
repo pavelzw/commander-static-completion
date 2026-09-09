@@ -1,21 +1,21 @@
-Input: csc-test-cli deploy --config vis/<TAB><TAB>
+Input: csc-test-cli deploy --f vis/<TAB><TAB>
 
 Shell: bash
 
-> csc-test-cli deploy --config vis/
+> csc-test-cli deploy --f vis/
 .hidden.json  alpha.json    beta.json
-> csc-test-cli deploy --config vis/▏
+> csc-test-cli deploy --f vis/▏
 
 ---
 
 Shell: fish
 
-> csc-test-cli deploy --config vis/alpha.json ▏
+> csc-test-cli deploy --f vis/alpha.json ▏
 vis/alpha.json  vis/beta.json
 
 ---
 
 Shell: zsh
 
-> csc-test-cli deploy --config vis/▏
+> csc-test-cli deploy --f vis/▏
 alpha.json  beta.json

@@ -96,6 +96,8 @@ export function wordBreakFixture() {
 
 export function pathSnapshotFixture() {
   const program = fixture();
+  // Keep menu prefixes short enough to avoid version-specific Fish abbreviation.
+  program.commands[0].addOption(completionHint(new Option("--f <path>"), { kind: "file" }));
   program.commands[0].addOption(
     completionHint(new Option("--directory <path>"), { kind: "directory" }),
   );

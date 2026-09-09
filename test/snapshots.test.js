@@ -104,7 +104,7 @@ const pathCases = [
   ["quoted-tilde", '"~/lit'],
   ["escaped-tilde", "\\~/lit"],
   ["hidden", ".hid"],
-  ["hidden-menu", "vis/", "--config", "<TAB><TAB>"],
+  ["hidden-menu", "vis/", "--f", "<TAB><TAB>"],
   ["symlink-file", "linked-f"],
   ["symlink-directory", "linked-d"],
   ["symlink-child", "linked-directory/ch"],
