@@ -179,7 +179,8 @@ The `▏` marker records the screen cursor. Snapshots contain the rendered scree
 including suggestion lists, rather than raw escape sequences or reconstructed
 candidate arrays. Each case starts a fresh interactive shell in an 80×24 PTY with
 isolated configuration/history and a fixed file fixture. Zsh's `zpty` provides the
-PTY for all three shells; `@xterm/headless` interprets terminal redraws. The harness
+PTY for all three shells; `@xterm/headless` interprets terminal redraws and replies
+to terminal capability queries through a bidirectional connection. The harness
 waits for a capture acknowledgement and drains pending redraws, enforces a
 15-second deadline, and kills the worker on failure. Colors and terminal control
 sequences are not serialized; trailing screen padding is trimmed. Shell-specific

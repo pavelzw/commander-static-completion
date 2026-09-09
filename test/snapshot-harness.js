@@ -107,9 +107,16 @@ printf '${ready}'
 zmodload zsh/zselect
 _cleanup() { if [[ -f worker.pid ]]; then kill -KILL $(<worker.pid) 2>/dev/null; fi; zpty -d worker 2>/dev/null; }
 trap _cleanup EXIT
+_respond() {
+  while zselect -t 0 -r 3; do
+    IFS= read -r -d '' -u 3 response || return
+    zpty -w -n worker "$response"
+  done
+}
 _until() {
   output=
   while [[ $output != *"$1"* ]]; do
+    _respond
     if zpty -r -t worker chunk; then
       output+=$chunk
       print -rn -- "$chunk" >&2
@@ -120,7 +127,7 @@ _until() {
     fi
   done
 }
-zpty -e worker ${quote(`exec /bin/sh -c ${quote(command)}`)}
+zpty -b -e worker ${quote(`exec /bin/sh -c ${quote(command)}`)}
 ${shell === "zsh" ? `_until CSC_BOOT || exit 1\nzpty -w -n worker ${quote("source ./setup\r")}\n` : ""}
 _until ${quote("\x1b]777;CSC_READY\x07")} || exit 1
 print -rn -- "\${output#*${"\x1b]777;CSC_READY\x07"}}"
@@ -132,6 +139,7 @@ print -rn -- "$output"
 # The binding acknowledges completion; drain any queued editor redraw afterward.
 quiet=0
 while ((quiet < 10)); do
+  _respond
   if zpty -r -t worker chunk; then
     print -rn -- "$chunk"
     print -rn -- "$chunk" >&2
@@ -190,6 +198,7 @@ function runDriver(input, cwd, timeoutMs) {
     const child = spawn(executables.zsh, ["-f"], {
       cwd,
       detached: true,
+      stdio: ["pipe", "pipe", "pipe", "pipe"],
       env: {
         ...process.env,
         HOME: join(cwd, "home"),
@@ -205,6 +214,36 @@ function runDriver(input, cwd, timeoutMs) {
         INPUTRC: "/dev/null",
         HISTFILE: "/dev/null",
       },
+    });
+    // Feed the complete live transcript into an emulator as well as rendering
+    // the final snapshot. Its DA/DSR replies travel back to the PTY via fd 3;
+    // current Fish waits for this negotiation before drawing its prompt.
+    const protocol = new xterm.Terminal({ cols: 80, rows: 24, allowProposedApi: true });
+    const reply = (data) => {
+      if (!child.stdio[3].destroyed) child.stdio[3].write(data + "\0");
+    };
+    protocol.onData(reply);
+    // xterm-headless has no renderer/theme or extended keyboard protocol. Answer
+    // queries for those features explicitly instead of making Fish wait for them.
+    protocol.parser.registerCsiHandler({ prefix: "?", final: "u" }, () => {
+      reply("\x1b[?0u");
+      return true;
+    });
+    protocol.parser.registerCsiHandler({ prefix: ">", final: "q" }, () => {
+      reply("\x1bP>|XTerm(370)\x1b\\");
+      return true;
+    });
+    protocol.parser.registerOscHandler(11, (data) => {
+      if (data !== "?") return false;
+      reply("\x1b]11;rgb:0000/0000/0000\x1b\\");
+      return true;
+    });
+    protocol.parser.registerDcsHandler({ intermediates: "+", final: "q" }, (data) => {
+      reply("\x1bP0+r" + data + "\x1b\\");
+      return true;
+    });
+    child.stdio[3].on("error", () => {
+      /* The worker may close during a reply. */
     });
     let stdout = "",
       stderr = "",
@@ -243,6 +282,7 @@ function runDriver(input, cwd, timeoutMs) {
     });
     child.stderr.on("data", (data) => {
       stderr += data;
+      protocol.write(data);
       if (stderr.length > 1024 * 1024) stop("Terminal diagnostics exceeded 1 MiB");
     });
     child.on("error", (err) => {
@@ -253,6 +293,7 @@ function runDriver(input, cwd, timeoutMs) {
     });
     child.on("close", (status) => {
       clearTimeout(timer);
+      protocol.dispose();
       resolve({ status, stdout, stderr, error });
     });
     child.stdin.end(input);

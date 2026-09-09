@@ -41,3 +41,31 @@ test("snapshot startup timeouts retain diagnostics and terminate the PTY worker"
     rmSync(cwd, { recursive: true, force: true });
   }
 });
+
+test("snapshot terminal answers capability queries during startup", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "csc-query-"));
+  try {
+    const executable = join(cwd, "querying shell");
+    writeFileSync(
+      executable,
+      `#!/bin/bash
+/bin/stty -echo -icanon min 1
+printf '\\033]777;CSC_READY\\007\\033[0c'
+seen=
+while IFS= read -r -n 1 char; do
+  seen+=$char
+  [[ $seen == *$'\\033[?1;2c' ]] && break
+done
+printf '> negotiation complete\\033]777;CSC_DONE\\007'
+exec /bin/sleep 30
+`,
+      { mode: 0o755 },
+    );
+    assert.equal(
+      await capture("bash", fixture(), "probe", { executable, timeoutMs: 2000 }),
+      "> negotiation complete▏\n",
+    );
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
