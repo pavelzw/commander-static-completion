@@ -1,7 +1,7 @@
 // Shell source is kept in TypeScript so tsc produces a self-contained package.
-export function bourneRuntime(shell: 'bash' | 'zsh'): string {
+export function bourneRuntime(shell: "bash" | "zsh"): string {
   return `${filterRuntime}\n__PREFIX__() {
-${shell === 'zsh' ? zshInput : ''}
+${shell === "zsh" ? zshInput : ""}
   local state=0 position=0 operands=0 end=0 pending= pending_value=-1 pending_variadic=0
   local passthrough positional negative join_next=0
   local number_pattern='^-([0-9]+|[0-9]*[.][0-9]+)(e[+-]?[0-9]+)?$'
@@ -69,7 +69,7 @@ ${shell === 'zsh' ? zshInput : ''}
     done
   fi
 
-${shell === 'bash' ? bashUnquote : ''}
+${shell === "bash" ? bashUnquote : ""}
   if ((value >= 0)); then
     __PREFIX___values
   else
@@ -84,7 +84,7 @@ ${shell === 'bash' ? bashUnquote : ''}
   for candidate in "\${candidates[@]}"; do
     [[ $candidate == "$current"* ]] && COMPREPLY+=("$lead$candidate")
   done
-${shell === 'bash' ? bashFiles : zshOutput}
+${shell === "bash" ? bashFiles : zshOutput}
   return 0
 }
 `;
@@ -118,7 +118,7 @@ const bashFiles = String.raw`  if [[ $kind == file || $kind == directory ]]; the
       fi
     done
   fi
-`.replaceAll('__DOLLAR__', '$');
+`.replaceAll("__DOLLAR__", "$");
 
 // COMP_WORDS retains quoting characters. Decode syntax without evaluating any
 // parameter expansion, command substitution, or other user-supplied shell code.
@@ -144,7 +144,7 @@ const bashUnquote = String.raw`  if [[ -n $COMP_LINE ]]; then
     ((escaped)) && decoded+='\'
     current=$decoded
   fi
-`.replaceAll('__DOLLAR__', '$');
+`.replaceAll("__DOLLAR__", "$");
 
 const zshInput = `  emulate -L ksh
   local -a COMP_WORDS=("\${words[@]}") COMPREPLY

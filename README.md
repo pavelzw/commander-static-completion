@@ -12,24 +12,27 @@ JavaScript and generated TypeScript declarations.
 
 ```js
 // cli-definition.js — configure commands without calling parse().
-import { Command, Option } from 'commander';
-import { completionHint } from 'commander-static-completion';
+import { Command, Option } from "commander";
+import { completionHint } from "commander-static-completion";
 
-export const program = new Command('mycli');
-program.command('deploy')
-  .addOption(new Option('-t, --target <target>').choices(['dev', 'production']))
-  .addOption(completionHint(new Option('--config <path>'), { kind: 'file' }));
+export const program = new Command("mycli");
+program
+  .command("deploy")
+  .addOption(new Option("-t, --target <target>").choices(["dev", "production"]))
+  .addOption(completionHint(new Option("--config <path>"), { kind: "file" }));
 ```
 
 ```js
 // generate-completion.js
-import { generateCompletion } from 'commander-static-completion';
-import { program } from './cli-definition.js';
+import { generateCompletion } from "commander-static-completion";
+import { program } from "./cli-definition.js";
 
-process.stdout.write(generateCompletion(program, {
-  shell: 'bash',
-  executable: 'mycli', // defaults to program.name()
-}));
+process.stdout.write(
+  generateCompletion(program, {
+    shell: "bash",
+    executable: "mycli", // defaults to program.name()
+  }),
+);
 ```
 
 ```sh

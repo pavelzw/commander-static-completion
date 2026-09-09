@@ -1,59 +1,99 @@
-import type { ModelCommand } from './model.js';
-import type { CompletionHint } from './types.js';
-import { fishRuntime } from './fish-runtime.js';
+import type { ModelCommand } from "./model.js";
+import type { CompletionHint } from "./types.js";
+import { fishRuntime } from "./fish-runtime.js";
 
 function quote(value: string): string {
   // Fish represents candidates as lines with an optional tab-delimited description.
   if (/[\0\r\n\t]/u.test(value)) {
-    throw new TypeError('Fish completion strings cannot contain NUL, tabs, or newlines.');
+    throw new TypeError("Fish completion strings cannot contain NUL, tabs, or newlines.");
   }
-  return "'" + value.replaceAll('\\', '\\\\').replaceAll("'", "\\'") + "'";
+  return "'" + value.replaceAll("\\", "\\\\").replaceAll("'", "\\'") + "'";
 }
 
-const print = (values: readonly string[]): string => values.length
-  ? `printf '%s\\n' ${values.map(quote).join(' ')}` : 'return 0';
+const print = (values: readonly string[]): string =>
+  values.length ? `printf '%s\\n' ${values.map(quote).join(" ")}` : "return 0";
 
 // Fish treats case arguments as patterns even when shell-quoted.
-const caseKey = (value: string): string => quote(value.replaceAll('\\', '\\\\').replaceAll('*', '\\*'));
+const caseKey = (value: string): string =>
+  quote(value.replaceAll("\\", "\\\\").replaceAll("*", "\\*"));
 
 export function renderFish(nodes: ModelCommand[], executable: string, prefix: string): string {
   const specs: CompletionHint[] = [];
-  const spec = (value: CompletionHint): number => { specs.push(value); return specs.length - 1; };
+  const spec = (value: CompletionHint): number => {
+    specs.push(value);
+    return specs.length - 1;
+  };
   const localCases: string[] = [];
-  const optionCases: string[] = [], argumentCases: string[] = [], childCases: string[] = [];
-  const commandCases: string[] = [], flagCases: string[] = [];
+  const optionCases: string[] = [],
+    argumentCases: string[] = [],
+    childCases: string[] = [];
+  const commandCases: string[] = [],
+    flagCases: string[] = [];
   for (const node of nodes) {
     for (const option of node.options) {
       const value = spec(option.value);
       for (const flag of option.flags) {
-        optionCases.push(`case ${caseKey(`${node.id}:${flag}`)}\n ${print([option.mode, String(value), option.variadic ? '1' : '0'])}`);
+        optionCases.push(
+          `case ${caseKey(`${node.id}:${flag}`)}\n ${print([option.mode, String(value), option.variadic ? "1" : "0"])}`,
+        );
       }
     }
     for (const option of node.localOptions) {
       const value = spec(option.value);
-      for (const flag of option.flags) localCases.push(`case ${caseKey(`${node.id}:${flag}`)}\n ${print([option.mode, String(value), option.variadic ? '1' : '0'])}`);
+      for (const flag of option.flags)
+        localCases.push(
+          `case ${caseKey(`${node.id}:${flag}`)}\n ${print([option.mode, String(value), option.variadic ? "1" : "0"])}`,
+        );
     }
     node.arguments.forEach((arg, index) => {
-      argumentCases.push(`case ${quote(`${node.id}:${index}`)}\n ${print([String(spec(arg.value)), arg.variadic ? '1' : '0'])}`);
+      argumentCases.push(
+        `case ${quote(`${node.id}:${index}`)}\n ${print([String(spec(arg.value)), arg.variadic ? "1" : "0"])}`,
+      );
     });
     for (const child of node.children) {
-      for (const name of child.names) childCases.push(`case ${caseKey(`${node.id}:${name}`)}\n ${print([String(child.id)])}`);
+      for (const name of child.names)
+        childCases.push(`case ${caseKey(`${node.id}:${name}`)}\n ${print([String(child.id)])}`);
     }
-    commandCases.push(`case ${node.id}\n ${print(node.children.filter(c => c.visible).flatMap(c => c.names))}`);
-    flagCases.push(`case ${node.id}\n ${print([...new Set(node.options.filter(o => o.visible).flatMap(o => o.flags))])}`);
+    commandCases.push(
+      `case ${node.id}\n ${print(node.children.filter((c) => c.visible).flatMap((c) => c.names))}`,
+    );
+    flagCases.push(
+      `case ${node.id}\n ${print([...new Set(node.options.filter((o) => o.visible).flatMap((o) => o.flags))])}`,
+    );
   }
-  const helper = (name: string, key: string, cases: string[], fallback: readonly string[] = []): string =>
-    `function ${prefix}_${name}\n switch "${key}"\n ${cases.join('\n ')}\n case '*'\n ${print(fallback)}\n end\nend`;
+  const helper = (
+    name: string,
+    key: string,
+    cases: string[],
+    fallback: readonly string[] = [],
+  ): string =>
+    `function ${prefix}_${name}\n switch "${key}"\n ${cases.join("\n ")}\n case '*'\n ${print(fallback)}\n end\nend`;
   const functions = [
-    helper('settings', '$argv[1]', nodes.map(node => `case ${node.id}\n ${print([node.passThrough ? '1' : '0', node.negativeNumbers ? '1' : '0', node.positional ? '1' : '0'])}`)),
-    helper('local_option', '$argv[1]:$argv[2]', localCases, ['unknown', '-1', '0']),
-    helper('option', '$argv[1]:$argv[2]', optionCases, ['unknown', '-1', '0']),
-    helper('argument', '$argv[1]:$argv[2]', argumentCases, ['-1', '0']),
-    helper('child', '$argv[1]:$argv[2]', childCases, ['-1']),
-    helper('commands', '$argv[1]', commandCases),
-    helper('flags', '$argv[1]', flagCases),
-    helper('values', '$argv[1]', specs.map((s, i) => `case ${i}\n ${print(s.kind === 'choices' ? s.values : [])}`)),
-    helper('kind', '$argv[1]', specs.map((s, i) => `case ${i}\n ${print([s.kind])}`), ['none']),
+    helper(
+      "settings",
+      "$argv[1]",
+      nodes.map(
+        (node) =>
+          `case ${node.id}\n ${print([node.passThrough ? "1" : "0", node.negativeNumbers ? "1" : "0", node.positional ? "1" : "0"])}`,
+      ),
+    ),
+    helper("local_option", "$argv[1]:$argv[2]", localCases, ["unknown", "-1", "0"]),
+    helper("option", "$argv[1]:$argv[2]", optionCases, ["unknown", "-1", "0"]),
+    helper("argument", "$argv[1]:$argv[2]", argumentCases, ["-1", "0"]),
+    helper("child", "$argv[1]:$argv[2]", childCases, ["-1"]),
+    helper("commands", "$argv[1]", commandCases),
+    helper("flags", "$argv[1]", flagCases),
+    helper(
+      "values",
+      "$argv[1]",
+      specs.map((s, i) => `case ${i}\n ${print(s.kind === "choices" ? s.values : [])}`),
+    ),
+    helper(
+      "kind",
+      "$argv[1]",
+      specs.map((s, i) => `case ${i}\n ${print([s.kind])}`),
+      ["none"],
+    ),
   ];
-  return `# Generated by commander-static-completion. Requires Fish 4+.\n${functions.join('\n\n')}\n${fishRuntime.replaceAll('__PREFIX__', prefix)}\ncomplete -c ${quote(executable)} -f -k -a '(${prefix})'\n`;
+  return `# Generated by commander-static-completion. Requires Fish 4+.\n${functions.join("\n\n")}\n${fishRuntime.replaceAll("__PREFIX__", prefix)}\ncomplete -c ${quote(executable)} -f -k -a '(${prefix})'\n`;
 }

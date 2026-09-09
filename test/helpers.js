@@ -1,45 +1,61 @@
-import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import { generateCompletion } from '../dist/index.js';
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { generateCompletion } from "../dist/index.js";
 
-export const shells = ['bash', 'zsh', 'fish'];
-export const executables = { bash: process.env.TEST_BASH ?? '/bin/bash', zsh: process.env.TEST_ZSH ?? 'zsh', fish: process.env.TEST_FISH ?? 'fish' };
+export const shells = ["bash", "zsh", "fish"];
+export const executables = {
+  bash: process.env.TEST_BASH ?? "/bin/bash",
+  zsh: process.env.TEST_ZSH ?? "zsh",
+  fish: process.env.TEST_FISH ?? "fish",
+};
 const bash = executables.bash;
-export const quote = s => "'" + s.replaceAll("'", "'\\''") + "'";
-const fishQuote = s => "'" + s.replaceAll('\\', '\\\\').replaceAll("'", "\\'") + "'";
+export const quote = (s) => "'" + s.replaceAll("'", "'\\''") + "'";
+const fishQuote = (s) => "'" + s.replaceAll("\\", "\\\\").replaceAll("'", "\\'") + "'";
 
-function bashComplete(program, words, { cwd, breaks = ' \t\n"\'@><=;|&(:' } = {}) {
-  const script = generateCompletion(program, { shell: 'bash' });
+function bashComplete(program, words, { cwd, breaks = " \t\n\"'@><=;|&(:" } = {}) {
+  const script = generateCompletion(program, { shell: "bash" });
   const fn = script.match(/complete .*?-F (\w+)/)[1];
-  const result = spawnSync(bash, ['--noprofile', '--norc'], {
+  const result = spawnSync(bash, ["--noprofile", "--norc"], {
     cwd,
-    input: `${script}\ncsc-test-cli() { echo 'CLI WAS INVOKED' >&2; return 99; }\nPATH=/nonexistent\nCOMP_WORDS=(${words.map(quote).join(' ')})\nCOMP_CWORD=${words.length - 1}\nCOMP_WORDBREAKS=${quote(breaks)}\n${fn}\nif ((${ '${#COMPREPLY[@]}' })); then printf '%s\\0' "${ '${COMPREPLY[@]}' }"; fi\n`,
-    encoding: 'utf8',
+    input: `${script}\ncsc-test-cli() { echo 'CLI WAS INVOKED' >&2; return 99; }\nPATH=/nonexistent\nCOMP_WORDS=(${words.map(quote).join(" ")})\nCOMP_CWORD=${words.length - 1}\nCOMP_WORDBREAKS=${quote(breaks)}\n${fn}\nif ((${"${#COMPREPLY[@]}"})); then printf '%s\\0' "${"${COMPREPLY[@]}"}"; fi\n`,
+    encoding: "utf8",
   });
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stderr, '');
-  return result.stdout.split('\0').filter(Boolean);
+  assert.equal(result.stderr, "");
+  return result.stdout.split("\0").filter(Boolean);
 }
 
 function otherComplete(shell, program, words, cwd) {
   const script = generateCompletion(program, { shell });
   let input;
-  if (shell === 'fish') {
+  if (shell === "fish") {
     // Use a fixture name that cannot collide with bundled CLI completions.
     // Isolate our fixture from bundled/user completions, but retain native helpers.
-    const line = words.map((word, index) => index === words.length - 1 && word === '' ? '' : fishQuote(word)).join(' ');
+    const line = words
+      .map((word, index) => (index === words.length - 1 && word === "" ? "" : fishQuote(word)))
+      .join(" ");
     input = `set -g fish_complete_path\n${script}\nfunction csc-test-cli; echo 'CLI WAS INVOKED' >&2; end\nset -gx PATH /nonexistent\ncomplete -C ${fishQuote(line)}\n`;
   } else {
     // Test scanner output directly; the separate ZLE test covers native registration.
     const fn = script.match(/compdef (\w+)/)[1];
-    input = `compdef() { :; }\n${script}\ncompadd() { shift; printf '%s\\n' "$@"; }\ncsc-test-cli() { echo 'CLI WAS INVOKED' >&2; }\nPATH=/nonexistent\nwords=(${words.map(quote).join(' ')})\nCURRENT=${words.length}\nPREFIX=${quote(words.at(-1))}\n${fn}\n`;
+    input = `compdef() { :; }\n${script}\ncompadd() { shift; printf '%s\\n' "$@"; }\ncsc-test-cli() { echo 'CLI WAS INVOKED' >&2; }\nPATH=/nonexistent\nwords=(${words.map(quote).join(" ")})\nCURRENT=${words.length}\nPREFIX=${quote(words.at(-1))}\n${fn}\n`;
   }
-  const result = spawnSync(executables[shell], shell === 'fish' ? ['--no-config'] : ['-f'], { input, encoding: 'utf8', cwd });
+  const result = spawnSync(executables[shell], shell === "fish" ? ["--no-config"] : ["-f"], {
+    input,
+    encoding: "utf8",
+    cwd,
+  });
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stderr, '');
-  return result.stdout.trimEnd().split('\n').filter(Boolean).map(line => line.split('\t')[0]);
+  assert.equal(result.stderr, "");
+  return result.stdout
+    .trimEnd()
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => line.split("\t")[0]);
 }
 
 export function complete(shell, program, words, options = {}) {
-  return shell === 'bash' ? bashComplete(program, words, options) : otherComplete(shell, program, words, options.cwd);
+  return shell === "bash"
+    ? bashComplete(program, words, options)
+    : otherComplete(shell, program, words, options.cwd);
 }

@@ -1,8 +1,8 @@
-export type Shell = 'bash' | 'zsh' | 'fish';
+export type Shell = "bash" | "zsh" | "fish";
 
 export type CompletionHint =
-  | { kind: 'file' | 'directory' | 'none' }
-  | { kind: 'choices'; values: readonly string[] };
+  | { kind: "file" | "directory" | "none" }
+  | { kind: "choices"; values: readonly string[] };
 
 export interface GenerateOptions {
   shell: Shell;
