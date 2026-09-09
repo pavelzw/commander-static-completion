@@ -1,0 +1,17 @@
+Input: csc-test-cli -orprod<TAB>
+
+Shell: bash
+
+> csc-test-cli -orproduction ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli -orproduction ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli -orproduction ▏

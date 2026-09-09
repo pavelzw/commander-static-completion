@@ -5,7 +5,7 @@ ${shell === "zsh" ? zshInput : ""}
   local state=0 position=0 operands=0 end=0 pending= pending_value=-1 pending_variadic=0
   local passthrough positional negative default_command consume join_next=0
   local number_pattern='^-([0-9]+|[0-9]*[.][0-9]+)(e[+-]?[0-9]+)?$'
-  local mode value=-1 variadic=0 next kind word current flag rest attached
+  local combine mode value=-1 variadic=0 next kind word current flag rest attached
   local i j count=0 candidate lead= cluster_prefix= raw_current="\${COMP_WORDS[COMP_CWORD]}"
   local -a tokens candidates flags alternatives
   COMPREPLY=()
@@ -65,7 +65,7 @@ ${shell === "zsh" ? zshInput : ""}
             current=-$rest
             break
           fi
-          [[ $mode != boolean ]] && break
+          [[ $mode == required || ( $mode == optional && ( $combine == 1 || \${#rest} == 1 ) ) ]] && break
           attached+=\${rest:0:1}; rest=\${rest:1}
         done
       fi
@@ -94,7 +94,7 @@ ${shell === "zsh" ? zshInput : ""}
       flag=-\${rest:0:1}; attached+=\${rest:0:1}; rest=\${rest:1}
       __PREFIX___option "$flag"
       if [[ -z $mode ]]; then value=-1; break; fi
-      if [[ $mode != boolean && -n $rest ]]; then lead=$attached; current=$rest; break; fi
+      if [[ ( $mode == required || ( $mode == optional && $combine == 1 ) ) && -n $rest ]]; then lead=$attached; current=$rest; break; fi
       value=-1
     done
   fi
@@ -227,7 +227,7 @@ const filterRuntime = `__PREFIX___filter() {
         __PREFIX___local_option "-\${rest:0:1}"
         if [[ -z $mode ]]; then token=-$rest; break; fi
         rest=\${rest:1}
-        if [[ $mode != boolean ]]; then
+        if [[ $mode == required || ( $mode == optional && ( $combine == 1 || -z $rest ) ) ]]; then
           [[ -n $rest ]] && attached=1
           break
         fi
@@ -242,7 +242,7 @@ const filterRuntime = `__PREFIX___filter() {
     if (((positional || passthrough) && seen == 0)); then
       __PREFIX___child "$token"
       if [[ -n $next ]] || ((default_command >= 0)); then
-        filtered+=("\${tokens[@]:$p:$((count-1-p))}")
+        filtered+=("$token" "\${tokens[@]:$((p+1)):$((count-2-p))}")
         break
       fi
     fi

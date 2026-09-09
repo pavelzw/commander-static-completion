@@ -39,3 +39,12 @@ export function defaultSnapshotFixture(nested = false) {
   }
   return program;
 }
+
+export function optionalClusterSnapshotFixture() {
+  const program = new Command("csc-test-cli").combineFlagAndOptionalValue(false);
+  program.option("-v, --verbose");
+  program.addOption(new Option("-o, --optional [value]").choices(["auto", "always"]));
+  program.addOption(new Option("-r, --required <value>").choices(["production", "preview"]));
+  program.addArgument(new Argument("[target]").choices(["app", "assets"]));
+  return program;
+}

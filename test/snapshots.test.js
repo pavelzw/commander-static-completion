@@ -1,10 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, writeFileSync } from "node:fs";
-import { fixture, defaultSnapshotFixture } from "./fixture.js";
+import { fixture, defaultSnapshotFixture, optionalClusterSnapshotFixture } from "./fixture.js";
 import { capture } from "./snapshot-harness.js";
 
 const cases = [
+  ["optional-cluster-boolean", "csc-test-cli -ov ap<TAB>", optionalClusterSnapshotFixture],
+  ["optional-cluster-last", "csc-test-cli -vo al<TAB>", optionalClusterSnapshotFixture],
+  ["optional-cluster-required", "csc-test-cli -orprod<TAB>", optionalClusterSnapshotFixture],
+  ["optional-cluster-no-value", "csc-test-cli -oal<TAB>", optionalClusterSnapshotFixture],
+  ["optional-long-assignment", "csc-test-cli --optional=al<TAB>", optionalClusterSnapshotFixture],
   ["default-ambiguous", "csc-test-cli a<TAB><TAB>", defaultSnapshotFixture],
   ["default-option", "csc-test-cli --port 8<TAB>", defaultSnapshotFixture],
   ["default-attached", "csc-test-cli --port=8<TAB>", defaultSnapshotFixture],

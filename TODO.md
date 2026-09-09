@@ -40,7 +40,7 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
 - [x] Support `passThroughOptions()` and stop suggesting owned options at the
       correct boundary.
 - [x] Support default subcommands without misclassifying positional arguments.
-- [ ] Support `combineFlagAndOptionalValue(false)`.
+- [x] Support `combineFlagAndOptionalValue(false)`.
 - [ ] Design an explicit way to supply definitions for executable subcommands;
       do not launch those executables during completion or scrape their help text.
 - [ ] Audit all Commander parsing settings that affect completion. For settings

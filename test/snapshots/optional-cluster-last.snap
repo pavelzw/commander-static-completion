@@ -1,0 +1,17 @@
+Input: csc-test-cli -vo al<TAB>
+
+Shell: bash
+
+> csc-test-cli -vo always ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli -vo always ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli -vo always ▏

@@ -34,7 +34,7 @@ export function renderFish(nodes: ModelCommand[], executable: string, prefix: st
       const value = spec(option.value);
       for (const flag of option.flags) {
         optionCases.push(
-          `case ${caseKey(`${node.id}:${flag}`)}\n ${print([option.mode, String(value), option.variadic ? "1" : "0"])}`,
+          `case ${caseKey(`${node.id}:${flag}`)}\n ${print([option.mode, String(value), option.variadic ? "1" : "0", option.combineOptional ? "1" : "0"])}`,
         );
       }
     }
@@ -42,7 +42,7 @@ export function renderFish(nodes: ModelCommand[], executable: string, prefix: st
       const value = spec(option.value);
       for (const flag of option.flags)
         localCases.push(
-          `case ${caseKey(`${node.id}:${flag}`)}\n ${print([option.mode, String(value), option.variadic ? "1" : "0"])}`,
+          `case ${caseKey(`${node.id}:${flag}`)}\n ${print([option.mode, String(value), option.variadic ? "1" : "0", option.combineOptional ? "1" : "0"])}`,
         );
     }
     node.arguments.forEach((arg, index) => {

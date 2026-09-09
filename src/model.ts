@@ -5,6 +5,8 @@ export interface ModelOption {
   flags: string[];
   visible: boolean;
   inherited: boolean;
+  // Preserve the declaring command's setting when forwarding ancestor options.
+  combineOptional: boolean;
   mode: "required" | "optional" | "boolean";
   variadic: boolean;
   value: CompletionHint;
@@ -31,9 +33,6 @@ interface CommanderInternals {
 // Private Commander access is confined to this compatibility adapter.
 export function checkCompatibility(command: Command) {
   const internal = command as Command & CommanderInternals;
-  if (internal._combineFlagAndOptionalValue === false) {
-    throw new Error("Static shell completion requires combineFlagAndOptionalValue(true).");
-  }
   if (internal._executableHandler) {
     throw new Error(`Supply an in-process definition for executable subcommand ${command.name()}.`);
   }
@@ -66,6 +65,7 @@ export function extract(program: Command): ModelCommand[] {
       flags: [option.short, option.long].filter((flag): flag is string => flag !== undefined),
       visible: visibleOptions.includes(option),
       inherited: command.options.includes(option),
+      combineOptional: internal._combineFlagAndOptionalValue !== false,
       mode: option.required ? "required" : option.optional ? "optional" : "boolean",
       variadic: option.variadic,
       value: valueSpec(option),

@@ -29,14 +29,14 @@ export function renderBourne(
       const id = spec(option.value);
       for (const flag of option.flags)
         optionCases.push(
-          `${quote(`${node.id}:${flag}`)}) mode=${option.mode}; value=${id}; variadic=${option.variadic ? 1 : 0} ;;`,
+          `${quote(`${node.id}:${flag}`)}) mode=${option.mode}; combine=${option.combineOptional ? 1 : 0}; value=${id}; variadic=${option.variadic ? 1 : 0} ;;`,
         );
     }
     for (const option of node.localOptions) {
       const id = spec(option.value);
       for (const flag of option.flags)
         localCases.push(
-          `${quote(`${node.id}:${flag}`)}) mode=${option.mode}; value=${id}; variadic=${option.variadic ? 1 : 0} ;;`,
+          `${quote(`${node.id}:${flag}`)}) mode=${option.mode}; combine=${option.combineOptional ? 1 : 0}; value=${id}; variadic=${option.variadic ? 1 : 0} ;;`,
         );
     }
     node.arguments.forEach((arg, index) => {

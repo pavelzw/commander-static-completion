@@ -1,0 +1,17 @@
+Input: csc-test-cli -ov ap<TAB>
+
+Shell: bash
+
+> csc-test-cli -ov app ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli -ov app ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli -ov app ▏

@@ -130,8 +130,13 @@ is passed to the default without consuming its first argument. Parent option
 values still take precedence, and positional/pass-through settings determine
 where the parent stops parsing.
 
-The generators currently reject `combineFlagAndOptionalValue(false)` and
-executable subcommands.
+`combineFlagAndOptionalValue(false)` is supported. An optional flag before
+another short flag is treated as a boolean (`-ov`), while an optional flag at
+the end can consume the next word (`-vo auto`). Required attached values
+(`-orproduction`) and long assignments (`--optional=auto`) still work. Each
+option retains its owning command's setting when inherited by a subcommand.
+
+The generators currently reject executable subcommands.
 Supply ordinary in-process subcommand definitions for generation instead.
 These checks use a small isolated Commander compatibility adapter.
 

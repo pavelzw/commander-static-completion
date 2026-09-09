@@ -54,14 +54,8 @@ test("generation is deterministic, syntactically valid, and does not parse", () 
 });
 
 test("unsupported configurations and invalid inputs produce diagnostics", () => {
-  for (const program of [
-    new Command("csc-test-cli").combineFlagAndOptionalValue(false),
-    new Command("csc-test-cli").command("external", "External executable"),
-  ])
-    assert.throws(
-      () => generateCompletion(program, { shell: "bash" }),
-      /support|requires|definition/,
-    );
+  const external = new Command("csc-test-cli").command("external", "External executable");
+  assert.throws(() => generateCompletion(external, { shell: "bash" }), /definition/);
   assert.throws(() => generateCompletion(fixture(), { shell: "powershell" }), /Unsupported shell/);
   assert.throws(
     () => generateCompletion(fixture(), { shell: "bash", executable: "" }),

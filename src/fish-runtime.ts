@@ -96,7 +96,7 @@ function __PREFIX___scan
                             set current "-$rest"
                             break
                         end
-                        if test "$info[1]" != boolean
+                        if test "$info[1]" = required; or begin; test "$info[1]" = optional; and begin; test "$info[4]" = 1; or test (string length -- "$rest") -eq 1; end; end
                             break
                         end
                         set consumed "$consumed$letter"
@@ -139,7 +139,7 @@ function __PREFIX___scan
             if test "$info[1]" = unknown
                 break
             end
-            if test "$info[1]" != boolean; and test -n "$rest"
+            if begin; test "$info[1]" = required; or begin; test "$info[1]" = optional; and test "$info[4]" = 1; end; end; and test -n "$rest"
                 set value $info[2]
                 set lead "$attached"
                 set current "$rest"
@@ -233,7 +233,7 @@ function __PREFIX___filter
                     break
                 end
                 set rest (string sub -s 2 -- "$rest")
-                if test "$info[1]" != boolean
+                if test "$info[1]" = required; or begin; test "$info[1]" = optional; and begin; test "$info[4]" = 1; or test -z "$rest"; end; end
                     if test -n "$rest"
                         set attached 1
                     end
@@ -252,7 +252,7 @@ function __PREFIX___filter
         if begin; test "$settings[3]" = 1; or test "$settings[1]" = 1; end; and test $seen -eq 0
             set -l next (__PREFIX___child $state "$token")
             if test "$next" != -1; or test "$settings[4]" != -1
-                set -a filtered $tokens[$original_index..-1]
+                set -a filtered "$token" $tokens[$index..-1]
                 break
             end
         end
