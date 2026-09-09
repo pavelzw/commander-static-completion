@@ -1,0 +1,17 @@
+Input: csc-test-cli deploy --config caf<TAB>
+
+Shell: bash
+
+> csc-test-cli deploy --config café.json ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli deploy --config café.json ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli deploy --config café.json ▏

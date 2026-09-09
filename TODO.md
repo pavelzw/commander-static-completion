@@ -68,7 +68,7 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
       without changing global Readline settings or completion registrations.
 - [x] Expand Bash word-break tests for `=`, `:`, assignment boundaries, and custom
       `COMP_WORDBREAKS`; establish which configurations are supported.
-- [ ] Expand path coverage: relative/absolute paths, `~/`, hidden files, symlinks,
+- [x] Expand path coverage: relative/absolute paths, `~/`, hidden files, symlinks,
       directories, attached option values, Unicode, and metacharacters.
 - [ ] Define consistent handling of empty choices and control characters. Cover
       NUL rejection and Fish's tab/newline restrictions; document filename limitations.

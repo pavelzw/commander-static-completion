@@ -69,3 +69,29 @@ exec /bin/sleep 30
     rmSync(cwd, { recursive: true, force: true });
   }
 });
+
+test("Bash capture preserves a wrapped line when the capture binding clears multiple rows", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "csc-wrap-"));
+  try {
+    const executable = join(cwd, "wrapped shell");
+    const line = "> " + "x".repeat(100);
+    writeFileSync(
+      executable,
+      `#!/bin/bash
+/bin/stty -echo -icanon min 1
+printf '\\033]777;CSC_READY\\007'
+IFS= read -r -n 1 key
+printf '%s' ${quote(line)}
+printf '\\r\\033[K\\r\\033[A\\033[K\\r\\033]777;CSC_DONE\\007'
+exec /bin/sleep 30
+`,
+      { mode: 0o755 },
+    );
+    assert.equal(
+      await capture("bash", fixture(), "probe", { executable, timeoutMs: 2000 }),
+      line.slice(0, 80) + "\n" + line.slice(80) + "▏\n",
+    );
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});

@@ -141,14 +141,18 @@ ${shell === "bash" ? bashFiles : zshOutput}
 }
 
 const bashFiles = String.raw`  if [[ $kind == file || $kind == directory ]]; then
-    local action=file
+    local action=file search=$current
+    # compgen expands a leading tilde even when the user quoted or escaped it.
+    # Keep './' in the result: Readline can otherwise expand the literal tilde
+    # during insertion, even when completing inside quotes on newer Bash.
+    if ((literal_tilde)); then search=./$current; fi
     [[ $kind == directory ]] && action=directory
     while IFS= read -r candidate; do
       # After trimming a word-break prefix, Readline cannot stat the original
       # directory. Preserve its slash before returning the replacement suffix.
       if [[ -n $COMP_LINE && -d $candidate && $candidate != */ ]]; then candidate+=/; fi
       COMPREPLY+=("$lead$candidate")
-    done < <(compgen -A "$action" -- "$current")
+    done < <(compgen -A "$action" -- "$search")
     compopt -o filenames 2>/dev/null || :
     if ((__DOLLAR__{#COMPREPLY[@]} == 1)) && [[ __DOLLAR__{COMPREPLY[0]} == */ ]]; then
       compopt -o nospace 2>/dev/null || :
@@ -187,7 +191,7 @@ const bashFiles = String.raw`  if [[ $kind == file || $kind == directory ]]; the
 // COMP_WORDS retains quoting characters. Decode syntax without evaluating any
 // parameter expansion, command substitution, or other user-supplied shell code.
 const bashUnquote = String.raw`  if [[ -n $COMP_LINE ]]; then
-    local decoded char quote_char escaped part phase=0
+    local decoded char quote_char escaped part phase=0 path_raw=$current
     for part in "$readline_prefix" "$current"; do
       decoded=; quote_char=; escaped=0
       for ((j=0; j<__DOLLAR__{#part}; j++)); do
@@ -210,6 +214,7 @@ const bashUnquote = String.raw`  if [[ -n $COMP_LINE ]]; then
       ((escaped)) && decoded+='\'
       if ((phase == 0)); then readline_prefix=$decoded; phase=1; else current=$decoded; fi
     done
+    if [[ $current == '~'* && $path_raw != '~'* ]]; then literal_tilde=1; fi
   fi
 `.replaceAll("__DOLLAR__", "$");
 
@@ -223,11 +228,15 @@ const zshInput = `  emulate -L ksh
 // entire token (including closing quotes). Match its literal boundaries without
 // evaluating shell syntax, then scan and quote only the prefix being replaced.
 const bashInput = String.raw`  local -a COMP_WORDS=("__DOLLAR__{COMP_WORDS[@]}")
-  local COMP_CWORD=$COMP_CWORD readline_prefix=
+  local COMP_CWORD=$COMP_CWORD readline_prefix= literal_tilde=0
   if [[ -n $COMP_LINE && -n $COMP_POINT ]]; then
     local before after
-    # COMP_POINT counts bytes, whereas substring offsets can count characters.
-    printf -v before '%.*s' "$COMP_POINT" "$COMP_LINE"
+    # Bash 4.3+ counts characters; older versions report a byte offset.
+    if ((BASH_VERSINFO[0] > 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] >= 3))); then
+      before=__DOLLAR__{COMP_LINE:0:COMP_POINT}
+    else
+      printf -v before '%.*s' "$COMP_POINT" "$COMP_LINE"
+    fi
     after=__DOLLAR__{COMP_LINE#"$before"}
     local token=__DOLLAR__{COMP_WORDS[COMP_CWORD]} prefix suffix cut
     for ((cut=__DOLLAR__{#token}; cut>=0; cut--)); do
@@ -277,7 +286,9 @@ const zshOutput = `  emulate -L zsh
   if [[ $kind == file || $kind == directory ]]; then
     # Native file completion handles quoting and directory suffixes.
     if [[ -n $lead ]]; then compset -P "\${(b)lead}"; fi
-    if [[ $kind == directory ]]; then _files -/; else _files; fi
+    # _files can fall back to all files when no directory matches. Use the
+    # lower-level helper to keep directory hints strict, including symlinks.
+    if [[ $kind == directory ]]; then _path_files -/; else _files; fi
   fi`;
 
 const filterRuntime = `__PREFIX___filter() {

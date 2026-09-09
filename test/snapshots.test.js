@@ -8,6 +8,7 @@ import {
   optionalClusterSnapshotFixture,
   descriptionFixture,
   wordBreakFixture,
+  pathSnapshotFixture,
 } from "./fixture.js";
 import { capture } from "./snapshot-harness.js";
 
@@ -93,6 +94,52 @@ for (const [name, input, makeProgram] of cases) {
     if (versionedCases.has(name)) assertShellSnapshot(path, input, sections);
     else assertSnapshot(path, actual);
   });
+}
+
+const pathCases = [
+  ["relative", "./two"],
+  ["parent", "linked-directory/../two"],
+  ["absolute", "/dev/nul"],
+  ["home", "~/home.j"],
+  ["quoted-tilde", '"~/lit'],
+  ["escaped-tilde", "\\~/lit"],
+  ["hidden", ".hid"],
+  ["hidden-menu", "vis/", "--config", "<TAB><TAB>"],
+  ["symlink-file", "linked-f"],
+  ["symlink-directory", "linked-d"],
+  ["symlink-child", "linked-directory/ch"],
+  ["broken-symlink", "broken-l"],
+  ["unicode", "caf"],
+  ["unicode-prefix", "café"],
+  ["wide-unicode", "東"],
+  ["apostrophe", "quo"],
+  ["substitution", "meta"],
+  ["brackets", "bracket"],
+  ["backslash", "back"],
+  ["directory-only", "linked-", "--directory"],
+  ["directory-excludes-file", "linked-f", "--directory"],
+  ["directory-excludes-broken-link", "broken-l", "--directory"],
+  ["directory-home", "~/home-d", "--directory"],
+];
+for (const [name, prefix, option = "--config", keys = "<TAB>"] of pathCases) {
+  for (const separator of [" ", "="]) {
+    test(`interactive snapshot: path-${name}${separator === "=" ? "-attached" : ""}`, async () => {
+      const input = `csc-test-cli deploy ${option}${separator}${prefix}${keys}`;
+      const sections = [];
+      for (const shell of ["bash", "fish", "zsh"]) {
+        sections.push(
+          `Shell: ${shell}\n\n${await capture(shell, pathSnapshotFixture(), input, { pathFixture: true })}`,
+        );
+      }
+      assertSnapshot(
+        new URL(
+          `./snapshots/path-${name}${separator === "=" ? "-attached" : ""}.snap`,
+          import.meta.url,
+        ),
+        `Input: ${input}\n\n${sections.join("\n---\n\n")}`,
+      );
+    });
+  }
 }
 
 const defaultBreaks = " \t\n\"'@><=;|&(:";

@@ -1,0 +1,17 @@
+Input: csc-test-cli deploy --config broken-l<TAB>
+
+Shell: bash
+
+> csc-test-cli deploy --config broken-link ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli deploy --config broken-link ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli deploy --config broken-link▏

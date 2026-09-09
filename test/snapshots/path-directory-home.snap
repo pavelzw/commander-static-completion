@@ -1,0 +1,17 @@
+Input: csc-test-cli deploy --directory ~/home-d<TAB>
+
+Shell: bash
+
+> csc-test-cli deploy --directory ~/home-directory/▏
+
+---
+
+Shell: fish
+
+> csc-test-cli deploy --directory ~/home-directory/▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli deploy --directory ~/home-directory/▏

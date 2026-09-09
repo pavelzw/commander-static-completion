@@ -1,0 +1,17 @@
+Input: csc-test-cli deploy --config ~/home.j<TAB>
+
+Shell: bash
+
+> csc-test-cli deploy --config ~/home.json ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli deploy --config ~/home.json ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli deploy --config ~/home.json ▏

@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  mkdirSync,
+  writeFileSync,
+  rmSync,
+  existsSync,
+  readFileSync,
+  symlinkSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import xterm from "@xterm/headless";
@@ -29,7 +37,7 @@ export async function capture(
   shell,
   program,
   input,
-  { executable = executables[shell], timeoutMs = 15000, bashWordBreaks } = {},
+  { executable = executables[shell], timeoutMs = 15000, bashWordBreaks, pathFixture = false } = {},
 ) {
   assert.ok(["bash", "zsh", "fish"].includes(shell), `Unsupported shell: ${shell}`);
   const cwd = mkdtempSync(join(tmpdir(), "csc-snapshot-"));
@@ -46,6 +54,30 @@ export async function capture(
     writeFileSync(join(cwd, "two words.json"), "");
     writeFileSync(join(cwd, "quote's.json"), "");
     writeFileSync(join(cwd, "server:config.json"), "");
+    if (pathFixture) {
+      mkdirSync(join(cwd, "~"));
+      writeFileSync(join(cwd, "~", "literal.json"), "");
+      writeFileSync(join(cwd, "home", "home.json"), "");
+      mkdirSync(join(cwd, "home", "home-directory"));
+      mkdirSync(join(cwd, "vis"));
+      writeFileSync(join(cwd, "vis", "alpha.json"), "");
+      writeFileSync(join(cwd, "vis", "beta.json"), "");
+      writeFileSync(join(cwd, "vis", ".hidden.json"), "");
+      writeFileSync(join(cwd, "nested directory", "child.json"), "");
+      for (const name of [
+        ".hidden.json",
+        "café.json",
+        "東京.json",
+        "meta$(echo>PWNED).json",
+        "bracket[one].json",
+        "back\\slash.json",
+      ]) {
+        writeFileSync(join(cwd, name), "");
+      }
+      symlinkSync("two words.json", join(cwd, "linked-file"));
+      symlinkSync("nested directory", join(cwd, "linked-directory"));
+      symlinkSync("missing", join(cwd, "broken-link"));
+    }
     const completion = generateCompletion(program, { shell });
     let setup, args;
     const ready = "\\033]777;CSC_READY\\007";
@@ -155,7 +187,8 @@ while ((quiet < 10)); do
 done
 exit 0
 `;
-    const result = await runDriver(driver, cwd, timeoutMs);
+    const locale = pathFixture ? (process.platform === "darwin" ? "en_US.UTF-8" : "C.UTF-8") : "C";
+    const result = await runDriver(driver, cwd, timeoutMs, locale);
     assert.equal(
       result.status,
       0,
@@ -167,6 +200,7 @@ exit 0
       false,
       `Completion invoked the CLI: ${JSON.stringify(result.stdout)}`,
     );
+    assert.equal(existsSync(join(cwd, "PWNED")), false, "Completion executed filename text");
     assert.equal(
       existsSync(join(cwd, "word-breaks-changed")),
       false,
@@ -176,8 +210,10 @@ exit 0
       shell === "fish" ? result.stdout : result.stdout.split("\x1b]777;CSC_DONE\x07")[0];
     // bind -x adds a newline on Bash 3.2, or clears the input line on Bash 5,
     // before executing the capture binding. Exclude only that trailing artifact.
-    // oxlint-disable-next-line no-control-regex -- Match the capture binding’s terminal control sequence.
-    if (shell === "bash") transcript = transcript.replace(/\r\x1b\[K\r$|\r?\n$/, "");
+    if (shell === "bash") {
+      // oxlint-disable-next-line no-control-regex -- Match the capture binding’s terminal control sequence.
+      transcript = transcript.replace(/\r\x1b\[K(?:\r\x1b\[A\x1b\[K)*\r$|\r?\n$/, "");
+    }
     await new Promise((resolve) => terminal.write(transcript, resolve));
     const buffer = terminal.buffer.active;
     const lines = [];
@@ -202,7 +238,7 @@ exit 0
 
 // A deadline kills both the driver and its PTY worker, rather than leaving a
 // blocked interactive shell behind. Keep the transcript for actionable failures.
-function runDriver(input, cwd, timeoutMs) {
+function runDriver(input, cwd, timeoutMs, locale) {
   return new Promise((resolve) => {
     const child = spawn(executables.zsh, ["-f"], {
       cwd,
@@ -216,7 +252,7 @@ function runDriver(input, cwd, timeoutMs) {
         XDG_DATA_HOME: join(cwd, "home"),
         BASH_SILENCE_DEPRECATION_WARNING: "1",
         TERM: "xterm",
-        LC_ALL: "C",
+        LC_ALL: locale,
         COLUMNS: "80",
         LINES: "24",
         PS1: "CSC_BOOT> ",

@@ -4,6 +4,11 @@
 
 ### Fixed
 
+- Bash completion handles byte cursor offsets before 4.3 and character offsets
+  in newer versions, fixing completion after non-ASCII input in UTF-8 locales.
+- Fish completes unquoted `~/` paths while preserving literal quoted/escaped tildes.
+- Bash treats quoted/escaped tildes as literal paths instead of expanding home.
+- Zsh directory hints no longer fall back to regular files or broken symlinks.
 - Bash completion reconstructs adjacent word-break fragments and trims the prefix
   Readline preserves, fixing colon-containing values/paths and repeated equals signs.
 - Whitespace around `=` no longer turns separate arguments into an option assignment.

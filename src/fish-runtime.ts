@@ -3,16 +3,18 @@ export const fishRuntime = String.raw`
 function __PREFIX__
     set -l tokens (commandline -xpc)
     set -l current (commandline -ct)
+    set -l raw_current "$current"
     # Unescape a complete token; leave incomplete quoting to Fish's matcher.
     set -l unescaped (string unescape -- "$current")
     if test (count $unescaped) -eq 1
         set current "$unescaped"
     end
-    __PREFIX___scan "$current" $tokens[2..-1]
+    __PREFIX___scan "$current" "$raw_current" $tokens[2..-1]
 end
 
 function __PREFIX___scan
     set -l current "$argv[1]"
+    set -l raw_current "$argv[2]"
     set -l state 0
     set -l position 0
     set -l operands 0
@@ -26,7 +28,7 @@ function __PREFIX___scan
     set -l cluster_prefix ''
     set -l alternatives
 
-    set -l tokens $argv[2..-1]
+    set -l tokens $argv[3..-1]
     while true
         set settings (__PREFIX___settings $state)
         set pending ''
@@ -174,6 +176,12 @@ function __PREFIX___scan
     set -l kind (__PREFIX___kind $value)
     if test "$kind" = file; or test "$kind" = directory
         set -l escaped (string escape -- "$current")
+        # Preserve an unquoted home prefix, while escaping the rest of the path
+        # before handing it to native completion. Quoted/escaped '~' stays literal.
+        set -l raw_value (string sub -s (math (string length -- "$lead") + 1) -- "$raw_current")
+        if string match -q -- '~/*' "$raw_value"
+            set escaped '~/'(string escape -- (string sub -s 3 -- "$current"))
+        end
         set -l paths
         if test "$kind" = directory
             set paths (__fish_complete_directories "$escaped")

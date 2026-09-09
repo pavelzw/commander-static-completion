@@ -224,6 +224,18 @@ existing directory (for example after `server:`). Remove that space to continue
 the path. Bash 4+ suppresses it using `compopt`; Bash 3.2 has no equivalent
 per-completion control. This difference is recorded in the directory snapshot.
 
+Path hints support relative and absolute paths, `~/`, hidden files, and symlinks.
+Directory hints include symlinks to directories and exclude regular files and
+broken links. File hints can include broken links. The shell controls hidden-file
+visibility, ordering, and insertion details; explicitly typed dot prefixes work
+in all three shells.
+
+An unquoted `~/` selects the home directory. Quoted or escaped tildes select a
+literal directory named `~`. Bash may insert `./~/…` for a literal tilde to keep
+it literal. Filenames with spaces, quotes, brackets, backslashes, and shell
+substitution characters are escaped during insertion. Unicode path tests run in
+a UTF-8 locale; other locale/encoding combinations are not covered.
+
 ## Development
 
 ```sh
@@ -290,6 +302,13 @@ The `word-break-*` snapshots each contain five Bash configurations: the default
 They cover option assignments, literal/repeated equals signs, colon-containing
 values and filenames, quoting, consumed values, and whitespace boundaries.
 Every Bash capture checks that completion leaves `COMP_WORDBREAKS` unchanged.
+
+The `path-*` snapshots cover separate and attached option values in Bash, Fish,
+and Zsh. Their isolated fixtures include relative paths, home files, hidden files,
+valid/broken symlinks, directory hints, accented and wide Unicode characters, and
+filenames containing shell syntax. Absolute-path cases use `/dev/null`. These
+cases use `en_US.UTF-8` on macOS and `C.UTF-8` on Linux. A marker check catches
+accidental execution of the shell syntax embedded in a fixture filename.
 
 Full generated-script snapshots live in `test/snapshots/generated/`: `bash.snap`,
 `fish.snap`, and `zsh.snap`. Each file contains the exact, unmodified output from

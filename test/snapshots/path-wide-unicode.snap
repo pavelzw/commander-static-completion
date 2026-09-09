@@ -1,0 +1,17 @@
+Input: csc-test-cli deploy --config 東<TAB>
+
+Shell: bash
+
+> csc-test-cli deploy --config 東京.json ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli deploy --config 東京.json ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli deploy --config 東京.json ▏

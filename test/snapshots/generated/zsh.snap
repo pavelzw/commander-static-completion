@@ -447,7 +447,9 @@ _csc_3c3e584a1e7b51e2() {
   if [[ $kind == file || $kind == directory ]]; then
     # Native file completion handles quoting and directory suffixes.
     if [[ -n $lead ]]; then compset -P "${(b)lead}"; fi
-    if [[ $kind == directory ]]; then _files -/; else _files; fi
+    # _files can fall back to all files when no directory matches. Use the
+    # lower-level helper to keep directory hints strict, including symlinks.
+    if [[ $kind == directory ]]; then _path_files -/; else _files; fi
   fi
   return 0
 }

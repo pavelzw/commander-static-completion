@@ -93,3 +93,11 @@ export function wordBreakFixture() {
   program.addArgument(new Argument("[region]").choices(["eu", "us"]));
   return program;
 }
+
+export function pathSnapshotFixture() {
+  const program = fixture();
+  program.commands[0].addOption(
+    completionHint(new Option("--directory <path>"), { kind: "directory" }),
+  );
+  return program;
+}

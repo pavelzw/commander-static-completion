@@ -1,0 +1,17 @@
+Input: csc-test-cli deploy --config=linked-directory/ch<TAB>
+
+Shell: bash
+
+> csc-test-cli deploy --config=linked-directory/child.json ▏
+
+---
+
+Shell: fish
+
+> csc-test-cli deploy --config=linked-directory/child.json ▏
+
+---
+
+Shell: zsh
+
+> csc-test-cli deploy --config=linked-directory/child.json ▏
