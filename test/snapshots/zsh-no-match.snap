@@ -1,0 +1,4 @@
+Shell: zsh
+Input: csc-test-cli zzz<TAB>
+
+> csc-test-cli zzz▏

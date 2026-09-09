@@ -1,0 +1,4 @@
+Shell: zsh
+Input: csc-test-cli deploy --config=two<TAB>
+
+> csc-test-cli deploy --config=two\ words.json ▏

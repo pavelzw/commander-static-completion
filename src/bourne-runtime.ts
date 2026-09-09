@@ -150,9 +150,11 @@ const zshInput = `  emulate -L ksh
   local -a COMP_WORDS=("\${words[@]}") COMPREPLY
   local COMP_CWORD=$((CURRENT - 1)) COMP_WORDBREAKS=
   # Ignore text after the cursor in the current token.
-  COMP_WORDS[COMP_CWORD]=$PREFIX`;
+  COMP_WORDS[COMP_CWORD]=\${(Q)PREFIX}`;
 
 const zshOutput = `  emulate -L zsh
+  # Restore compinit options before calling native completion helpers.
+  if ((\${#_comp_options[@]})); then setopt "\${_comp_options[@]}"; fi
   if ((\${#COMPREPLY[@]})); then compadd -- "\${COMPREPLY[@]}"; fi
   if [[ $kind == file || $kind == directory ]]; then
     # Native file completion handles quoting and directory suffixes.

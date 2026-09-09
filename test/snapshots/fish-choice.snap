@@ -1,0 +1,4 @@
+Shell: fish
+Input: csc-test-cli deploy --target pr<TAB>
+
+> csc-test-cli deploy --target production ▏

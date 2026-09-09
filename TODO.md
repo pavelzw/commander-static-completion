@@ -73,8 +73,10 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
       script workflow, with installation tests.
 - [ ] Verify shell state is preserved after completion and command/Node execution
       remains unnecessary in every native integration test.
-- [ ] Make harness failures portable and actionable: timeouts, shell availability,
+- [ ] Make remaining harness failures portable and actionable: timeouts, shell availability,
       executable overrides (including Bash), and pseudo-terminal cleanup.
+- [x] Add native interactive screen snapshots for Bash, Zsh, and Fish, with shared
+      keystroke inputs, cursor positions, visible suggestions, and explicit local updates.
 - [ ] Add representative generated-output snapshots alongside behavioral tests
       to review output changes and guard deterministic generation in every shell.
 

@@ -1,0 +1,5 @@
+Shell: zsh
+Input: csc-test-cli deploy --color <TAB><TAB>
+
+> csc-test-cli deploy --color ▏
+blue  red

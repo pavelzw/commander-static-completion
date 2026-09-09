@@ -1,0 +1,4 @@
+Shell: bash
+Input: csc-test-cli help rem<TAB>
+
+> csc-test-cli help remote ▏

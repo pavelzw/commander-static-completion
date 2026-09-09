@@ -158,6 +158,34 @@ next token with the shell's suggestions. These probes test value ownership and
 parsing boundaries; they intentionally replace value-validation callbacks and
 do not establish equivalence for every possible CLI definition or input.
 
+Interactive snapshots live in `test/snapshots/`, with shared input cases in
+`test/snapshots.test.js`. Run `npm run test:snapshots` to compare them, or
+`npm run test:snapshots:update` to regenerate them locally, then review the diff.
+Missing snapshots fail normal tests; updates are disabled in CI. `npm test`
+includes snapshot comparisons automatically.
+
+Inputs use `<TAB>`, `<LEFT>`, `<RIGHT>`, `<HOME>`, `<END>`, and `<BACKSPACE>`;
+`<LEFT:11>` repeats a key eleven times. For example:
+
+```text
+Shell: zsh
+Input: csc-test-cli ta<TAB><TAB>
+
+> csc-test-cli ta▏
+tags   tasks
+```
+
+The `▏` marker records the screen cursor. Snapshots contain the rendered screen,
+including suggestion lists, rather than raw escape sequences or reconstructed
+candidate arrays. Each case starts a fresh interactive shell in an 80×24 PTY with
+isolated configuration/history and a fixed file fixture. Zsh's `zpty` provides the
+PTY for all three shells; `@xterm/headless` interprets terminal redraws. The harness
+waits for a capture acknowledgement and drains pending redraws, enforces a
+15-second deadline, and kills the worker on failure. Colors and terminal control
+sequences are not serialized; trailing screen padding is trimmed. Shell-specific
+ordering, inserted quoting, and cursor differences remain visible. These snapshots
+cover the configured terminal and fixtures, not every possible shell customization.
+
 GitHub Actions runs validation on Linux and macOS with Commander 14 and 15,
 Node 22.12.0, Node 24, and current Node. The matrix includes Bash 3.2 and 5.x,
 Zsh 5.9+, an exact Fish 4.0.0 source build, and current Fish 4+ packages. Every

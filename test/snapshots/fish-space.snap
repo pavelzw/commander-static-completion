@@ -1,0 +1,4 @@
+Shell: fish
+Input: csc-test-cli deploy --target two<TAB>
+
+> csc-test-cli deploy --target two\ words ▏

@@ -1,0 +1,4 @@
+Shell: bash
+Input: csc-test-cli deploy --config nest<TAB>
+
+> csc-test-cli deploy --config nested\ directory/▏
