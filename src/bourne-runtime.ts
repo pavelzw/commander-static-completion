@@ -11,10 +11,10 @@ ${shell === "zsh" ? zshInput : bashInput}
   COMPREPLY=()
   __PREFIX___settings
 
-  # Bash normally splits '=' into its own word. Reassemble option assignments.
+  # Direct scanner callers may supply split assignments without a source line.
   for ((i=1; i<=COMP_CWORD; i++)); do
     word=\${COMP_WORDS[i]}
-    if ((count > 0)) && [[ $word == = && \${tokens[count-1]} == --* ]]; then
+    if [[ -z $COMP_LINE ]] && ((count > 0)) && [[ $word == = && \${tokens[count-1]} == --* ]]; then
       tokens[count-1]+='='
       join_next=1
     elif ((join_next)) && [[ $word != = ]]; then
@@ -86,8 +86,8 @@ ${shell === "zsh" ? zshInput : bashInput}
     if [[ -z $mode || $mode == boolean ]]; then return 0; fi
     lead=\${current%%=*}=
     current=\${current#*=}
-    # Readline replaces only the part after '=' when it is a word break.
-    if [[ $COMP_WORDBREAKS == *=* && ( -n $COMP_LINE || $raw_current != --*=* ) ]]; then lead=; fi
+    # Native Bash trims the actual replacement prefix after generating candidates.
+    if [[ -z $COMP_LINE && $COMP_WORDBREAKS == *=* && $raw_current != --*=* ]]; then lead=; fi
   elif (( ! end )) && [[ $current == -?* && $current != --* ]]; then
     rest=\${current:1}; attached=-
     while [[ -n $rest ]]; do
@@ -144,10 +144,24 @@ const bashFiles = String.raw`  if [[ $kind == file || $kind == directory ]]; the
     local action=file
     [[ $kind == directory ]] && action=directory
     while IFS= read -r candidate; do
+      # After trimming a word-break prefix, Readline cannot stat the original
+      # directory. Preserve its slash before returning the replacement suffix.
+      if [[ -n $COMP_LINE && -d $candidate && $candidate != */ ]]; then candidate+=/; fi
       COMPREPLY+=("$lead$candidate")
     done < <(compgen -A "$action" -- "$current")
     compopt -o filenames 2>/dev/null || :
-  elif [[ -n $COMP_LINE ]] && compopt -o noquote +o filenames 2>/dev/null; then
+    if ((__DOLLAR__{#COMPREPLY[@]} == 1)) && [[ __DOLLAR__{COMPREPLY[0]} == */ ]]; then
+      compopt -o nospace 2>/dev/null || :
+    fi
+  fi
+  # Readline can replace only the suffix after a configured word break. Remove
+  # the already-present prefix from both static candidates and filesystem paths.
+  if [[ -n $readline_prefix ]]; then
+    for ((j=0; j<__DOLLAR__{#COMPREPLY[@]}; j++)); do
+      COMPREPLY[j]=__DOLLAR__{COMPREPLY[j]#"$readline_prefix"}
+    done
+  fi
+  if [[ $kind != file && $kind != directory && -n $COMP_LINE ]] && compopt -o noquote +o filenames 2>/dev/null; then
     # Quote static words ourselves: newer Readline can preserve expansion syntax
     # even with filename quoting enabled. Bash 3.2 uses registration-time quoting.
     for ((j=0; j<__DOLLAR__{#COMPREPLY[@]}; j++)); do
@@ -173,26 +187,29 @@ const bashFiles = String.raw`  if [[ $kind == file || $kind == directory ]]; the
 // COMP_WORDS retains quoting characters. Decode syntax without evaluating any
 // parameter expansion, command substitution, or other user-supplied shell code.
 const bashUnquote = String.raw`  if [[ -n $COMP_LINE ]]; then
-    local decoded= char quote_char= escaped=0
-    for ((j=0; j<__DOLLAR__{#current}; j++)); do
-      char=__DOLLAR__{current:j:1}
-      if ((escaped)); then
-        if [[ $quote_char == '"' && $char != '$' && $char != $'\x60' && $char != '"' && $char != \\ && $char != $'\n' ]]; then
-          decoded+='\'
+    local decoded char quote_char escaped part phase=0
+    for part in "$readline_prefix" "$current"; do
+      decoded=; quote_char=; escaped=0
+      for ((j=0; j<__DOLLAR__{#part}; j++)); do
+        char=__DOLLAR__{part:j:1}
+        if ((escaped)); then
+          if [[ $quote_char == '"' && $char != '$' && $char != $'\x60' && $char != '"' && $char != \\ && $char != $'\n' ]]; then
+            decoded+='\'
+          fi
+          decoded+=$char; escaped=0
+        elif [[ $char == \\ && $quote_char != "'" ]]; then
+          escaped=1
+        elif [[ -z $quote_char && ( $char == "'" || $char == '"' ) ]]; then
+          quote_char=$char
+        elif [[ -n $quote_char && $char == "$quote_char" ]]; then
+          quote_char=
+        else
+          decoded+=$char
         fi
-        decoded+=$char; escaped=0
-      elif [[ $char == \\ && $quote_char != "'" ]]; then
-        escaped=1
-      elif [[ -z $quote_char && ( $char == "'" || $char == '"' ) ]]; then
-        quote_char=$char
-      elif [[ -n $quote_char && $char == "$quote_char" ]]; then
-        quote_char=
-      else
-        decoded+=$char
-      fi
+      done
+      ((escaped)) && decoded+='\'
+      if ((phase == 0)); then readline_prefix=$decoded; phase=1; else current=$decoded; fi
     done
-    ((escaped)) && decoded+='\'
-    current=$decoded
   fi
 `.replaceAll("__DOLLAR__", "$");
 
@@ -206,6 +223,7 @@ const zshInput = `  emulate -L ksh
 // entire token (including closing quotes). Match its literal boundaries without
 // evaluating shell syntax, then scan and quote only the prefix being replaced.
 const bashInput = String.raw`  local -a COMP_WORDS=("__DOLLAR__{COMP_WORDS[@]}")
+  local COMP_CWORD=$COMP_CWORD readline_prefix=
   if [[ -n $COMP_LINE && -n $COMP_POINT ]]; then
     local before after
     # COMP_POINT counts bytes, whereas substring offsets can count characters.
@@ -219,6 +237,34 @@ const bashInput = String.raw`  local -a COMP_WORDS=("__DOLLAR__{COMP_WORDS[@]}")
         break
       fi
     done
+    # Bash versions disagree about splitting punctuation in COMP_WORDS. Join
+    # only physically adjacent fragments; whitespace around '=' stays meaningful.
+    local remaining=$before fragment gap index joined_count=0
+    local -a joined
+    for ((index=0; index<=COMP_CWORD; index++)); do
+      fragment=__DOLLAR__{COMP_WORDS[index]}
+      if [[ -n $fragment ]]; then
+        [[ $remaining == *"$fragment"* ]] || { COMPREPLY=(); return 0; }
+        gap=__DOLLAR__{remaining%%"$fragment"*}
+        remaining=__DOLLAR__{remaining#*"$fragment"}
+      else
+        gap=$remaining; remaining=
+      fi
+      if ((joined_count > 0)) && [[ -z $gap ]]; then
+        joined[joined_count-1]+=$fragment
+      else
+        joined[joined_count]=$fragment
+        ((joined_count+=1))
+      fi
+    done
+    COMP_WORDS=("__DOLLAR__{joined[@]}")
+    COMP_CWORD=$((joined_count-1))
+    # $2 is Readline's replacement text. It can be shorter than the logical word
+    # even on Bash 3.2, where COMP_WORDS retains punctuation within each word.
+    token=__DOLLAR__{COMP_WORDS[COMP_CWORD]}
+    if (($# >= 2)) && [[ $token == *"$2" ]]; then
+      readline_prefix=__DOLLAR__{token%"$2"}
+    fi
   fi`.replaceAll("__DOLLAR__", "$");
 
 const zshOutput = `  emulate -L zsh

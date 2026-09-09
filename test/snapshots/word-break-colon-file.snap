@@ -1,0 +1,29 @@
+Input: csc-test-cli --config server:co<TAB>
+
+Shell: bash (default)
+
+> csc-test-cli --config server:config.json ▏
+
+---
+
+Shell: bash (without equals)
+
+> csc-test-cli --config server:config.json ▏
+
+---
+
+Shell: bash (without colon)
+
+> csc-test-cli --config server:config.json ▏
+
+---
+
+Shell: bash (without equals or colon)
+
+> csc-test-cli --config server:config.json ▏
+
+---
+
+Shell: bash (with comma)
+
+> csc-test-cli --config server:config.json ▏

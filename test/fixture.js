@@ -83,3 +83,13 @@ export function descriptionFixture() {
   program.command("internal", { hidden: true }).description("Hidden command");
   return program;
 }
+
+export function wordBreakFixture() {
+  const program = new Command("csc-test-cli");
+  program.addOption(new Option("--endpoint <value>").choices(["api:production"]));
+  program.addOption(new Option("--define <value>").choices(["key=value", "key==value"]));
+  program.addOption(new Option("--pair <value>").choices(["key,value"]));
+  program.addOption(completionHint(new Option("--config <path>"), { kind: "file" }));
+  program.addArgument(new Argument("[region]").choices(["eu", "us"]));
+  return program;
+}

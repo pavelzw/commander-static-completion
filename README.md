@@ -201,10 +201,28 @@ settings, help behavior, and the private adapter.
 
 Custom argument parsers, option conflicts/implied values, and runtime plugin discovery are not
 interpreted. The scanner offers completion on incomplete input and is not a
-replacement for Commander validation. Filenames containing newlines and unusual custom Bash word-break
-configurations are not covered. Fish rejects static completion strings containing
+replacement for Commander validation. Filenames containing newlines are not covered.
+Fish rejects static completion strings containing
 tabs or newlines because its candidate format uses those as delimiters. Fish
 applies its own matching and ordering rules to candidates.
+
+Bash supports its default `COMP_WORDBREAKS`, removing `=` and/or `:`, and adding
+`,` as a delimiter. Completion preserves that setting. For example,
+`--endpoint=api:pr<TAB>` inserts `--endpoint=api:production` without duplicating
+`api:`. Literal equals signs inside values also work, such as
+`--define=key==va<TAB>` completing to `--define=key==value`.
+Spaces remain argument boundaries: `--endpoint = value` supplies `=` as the
+option's value, while `--endpoint= value` supplies an empty option value followed
+by a separate argument. Quotes and escaped punctuation remain part of the same
+argument. Other custom word-break settings, especially changes to whitespace or
+shell syntax delimiters, are outside the tested configurations. The adapter uses
+the literal command line and does not evaluate expansions to find candidates.
+
+Directory hints retain `/` even when Readline replaces only a suffix. Bash 3.2
+may still append a space when the returned suffix alone does not identify an
+existing directory (for example after `server:`). Remove that space to continue
+the path. Bash 4+ suppresses it using `compopt`; Bash 3.2 has no equivalent
+per-completion control. This difference is recorded in the directory snapshot.
 
 ## Development
 
@@ -261,11 +279,17 @@ and Zsh sections separated by `---`. Run `npm run test:snapshots` to compare the
 Missing snapshots fail normal tests; updates are disabled in CI. `npm test`
 includes snapshot comparisons automatically.
 
-Two quoted editing cases have separate Bash 3.2 and Bash 4+ sections in the same
-file because their editors produce different output. A local update preserves
+Some quoting cases have separate Bash 3.2 and Bash 4+ sections in the same file
+because their editors produce different output. A local update preserves
 the other Bash version's section; run with `TEST_BASH=/path/to/bash` to check or
 update that version. CI exercises both. When changing a versioned case's input,
 remove its old snapshot and regenerate with both Bash versions.
+
+The `word-break-*` snapshots each contain five Bash configurations: the default
+`COMP_WORDBREAKS`, removing `=`, removing `:`, removing both, and adding `,`.
+They cover option assignments, literal/repeated equals signs, colon-containing
+values and filenames, quoting, consumed values, and whitespace boundaries.
+Every Bash capture checks that completion leaves `COMP_WORDBREAKS` unchanged.
 
 Full generated-script snapshots live in `test/snapshots/generated/`: `bash.snap`,
 `fish.snap`, and `zsh.snap`. Each file contains the exact, unmodified output from

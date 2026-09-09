@@ -29,7 +29,7 @@ export async function capture(
   shell,
   program,
   input,
-  { executable = executables[shell], timeoutMs = 15000 } = {},
+  { executable = executables[shell], timeoutMs = 15000, bashWordBreaks } = {},
 ) {
   assert.ok(["bash", "zsh", "fish"].includes(shell), `Unsupported shell: ${shell}`);
   const cwd = mkdtempSync(join(tmpdir(), "csc-snapshot-"));
@@ -42,14 +42,18 @@ export async function capture(
   try {
     mkdirSync(join(cwd, "home"));
     mkdirSync(join(cwd, "nested directory"));
+    mkdirSync(join(cwd, "server:directory"));
     writeFileSync(join(cwd, "two words.json"), "");
     writeFileSync(join(cwd, "quote's.json"), "");
+    writeFileSync(join(cwd, "server:config.json"), "");
     const completion = generateCompletion(program, { shell });
     let setup, args;
     const ready = "\\033]777;CSC_READY\\007";
     const done = "\\033]777;CSC_DONE\\007";
     if (shell === "bash") {
       setup = `${completion}
+${bashWordBreaks === undefined ? "" : `COMP_WORDBREAKS=${quote(bashWordBreaks)}`}
+_csc_word_breaks=$COMP_WORDBREAKS
 set -o emacs
 PS1='\\[\\e]777;CSC_READY\\a\\]> '
 PS2='... '
@@ -59,7 +63,7 @@ bind 'set enable-bracketed-paste off'
 bind 'set show-all-if-ambiguous off'
 bind 'set page-completions off'
 bind 'set completion-query-items 0'
-_mark() { printf '${done}'; }
+_mark() { [[ $COMP_WORDBREAKS == "$_csc_word_breaks" ]] || printf changed > word-breaks-changed; printf '${done}'; }
 bind -x '"\\C-x\\C-g":_mark'
 csc-test-cli() { printf invoked > invoked; }
 PATH=/nonexistent
@@ -162,6 +166,11 @@ exit 0
       existsSync(join(cwd, "invoked")),
       false,
       `Completion invoked the CLI: ${JSON.stringify(result.stdout)}`,
+    );
+    assert.equal(
+      existsSync(join(cwd, "word-breaks-changed")),
+      false,
+      "Completion changed COMP_WORDBREAKS",
     );
     let transcript =
       shell === "fish" ? result.stdout : result.stdout.split("\x1b]777;CSC_DONE\x07")[0];

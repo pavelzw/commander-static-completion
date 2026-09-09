@@ -4,6 +4,9 @@
 
 ### Fixed
 
+- Bash completion reconstructs adjacent word-break fragments and trims the prefix
+  Readline preserves, fixing colon-containing values/paths and repeated equals signs.
+- Whitespace around `=` no longer turns separate arguments into an option assignment.
 - Bash completion scans only the current token's prefix before the cursor,
   avoiding incorrect quoting caused by an existing closing quote after the cursor.
 

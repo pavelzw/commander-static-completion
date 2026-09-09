@@ -318,10 +318,10 @@ _csc_3c3e584a1e7b51e2() {
   COMPREPLY=()
   _csc_3c3e584a1e7b51e2_settings
 
-  # Bash normally splits '=' into its own word. Reassemble option assignments.
+  # Direct scanner callers may supply split assignments without a source line.
   for ((i=1; i<=COMP_CWORD; i++)); do
     word=${COMP_WORDS[i]}
-    if ((count > 0)) && [[ $word == = && ${tokens[count-1]} == --* ]]; then
+    if [[ -z $COMP_LINE ]] && ((count > 0)) && [[ $word == = && ${tokens[count-1]} == --* ]]; then
       tokens[count-1]+='='
       join_next=1
     elif ((join_next)) && [[ $word != = ]]; then
@@ -393,8 +393,8 @@ _csc_3c3e584a1e7b51e2() {
     if [[ -z $mode || $mode == boolean ]]; then return 0; fi
     lead=${current%%=*}=
     current=${current#*=}
-    # Readline replaces only the part after '=' when it is a word break.
-    if [[ $COMP_WORDBREAKS == *=* && ( -n $COMP_LINE || $raw_current != --*=* ) ]]; then lead=; fi
+    # Native Bash trims the actual replacement prefix after generating candidates.
+    if [[ -z $COMP_LINE && $COMP_WORDBREAKS == *=* && $raw_current != --*=* ]]; then lead=; fi
   elif (( ! end )) && [[ $current == -?* && $current != --* ]]; then
     rest=${current:1}; attached=-
     while [[ -n $rest ]]; do

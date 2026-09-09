@@ -7,6 +7,7 @@ import {
   defaultSnapshotFixture,
   optionalClusterSnapshotFixture,
   descriptionFixture,
+  wordBreakFixture,
 } from "./fixture.js";
 import { capture } from "./snapshot-harness.js";
 
@@ -91,5 +92,55 @@ for (const [name, input, makeProgram] of cases) {
     const path = new URL(`./snapshots/${name}.snap`, import.meta.url);
     if (versionedCases.has(name)) assertShellSnapshot(path, input, sections);
     else assertSnapshot(path, actual);
+  });
+}
+
+const defaultBreaks = " \t\n\"'@><=;|&(:";
+const breakSettings = [
+  ["default", defaultBreaks],
+  ["without equals", defaultBreaks.replace("=", "")],
+  ["without colon", defaultBreaks.replace(":", "")],
+  ["without equals or colon", defaultBreaks.replace(/[=:]/g, "")],
+  ["with comma", defaultBreaks + ","],
+];
+const wordBreakCases = [
+  ["colon-value", "--endpoint api:pr<TAB>"],
+  ["colon-empty-suffix", "--endpoint api:<TAB>"],
+  ["colon-no-match", "--endpoint other:pr<TAB>"],
+  ["colon-assignment", "--endpoint=api:pr<TAB>"],
+  ["literal-equals", "--define key=va<TAB>"],
+  ["repeated-equals", "--define=key==va<TAB>"],
+  ["consumed-colon", "--endpoint api:production e<TAB>"],
+  ["consumed-equals", "--define=key=value e<TAB>"],
+  ["spaced-equals", "--endpoint = api:pr<TAB>"],
+  ["empty-before-space", "--endpoint= api:pr<TAB>"],
+  ["empty-assignment", "--endpoint=<TAB>"],
+  ["quoted-colon", '--endpoint "api:pr<TAB>'],
+  ["escaped-colon", "--endpoint api\\:pr<TAB>"],
+  ["colon-file", "--config server:co<TAB>"],
+  ["colon-attached-file", "--config=server:co<TAB>"],
+  ["colon-directory", "--config=server:di<TAB>"],
+  ["comma-value", "--pair key,va<TAB>"],
+];
+const versionedWordBreakCases = new Set([
+  "empty-assignment",
+  "escaped-colon",
+  "comma-value",
+  "colon-directory",
+]);
+for (const [name, suffix] of wordBreakCases) {
+  test(`interactive snapshot: word-break-${name}`, async () => {
+    const input = `csc-test-cli ${suffix}`;
+    const sections = [];
+    for (const [setting, bashWordBreaks] of breakSettings) {
+      const output = await capture("bash", wordBreakFixture(), input, { bashWordBreaks });
+      const version = versionedWordBreakCases.has(name)
+        ? `${bashVersion === "3" ? "3.2" : "4+"}; `
+        : "";
+      sections.push(`Shell: bash (${version}${setting})\n\n${output}`);
+    }
+    const path = new URL(`./snapshots/word-break-${name}.snap`, import.meta.url);
+    if (versionedWordBreakCases.has(name)) assertShellSnapshot(path, input, sections);
+    else assertSnapshot(path, `Input: ${input}\n\n${sections.join("\n---\n\n")}`);
   });
 }

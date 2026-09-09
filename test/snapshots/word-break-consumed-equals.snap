@@ -1,0 +1,29 @@
+Input: csc-test-cli --define=key=value e<TAB>
+
+Shell: bash (default)
+
+> csc-test-cli --define=key=value eu ▏
+
+---
+
+Shell: bash (without equals)
+
+> csc-test-cli --define=key=value eu ▏
+
+---
+
+Shell: bash (without colon)
+
+> csc-test-cli --define=key=value eu ▏
+
+---
+
+Shell: bash (without equals or colon)
+
+> csc-test-cli --define=key=value eu ▏
+
+---
+
+Shell: bash (with comma)
+
+> csc-test-cli --define=key=value eu ▏

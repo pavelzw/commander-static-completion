@@ -1,0 +1,29 @@
+Input: csc-test-cli --endpoint other:pr<TAB>
+
+Shell: bash (default)
+
+> csc-test-cli --endpoint other:pr▏
+
+---
+
+Shell: bash (without equals)
+
+> csc-test-cli --endpoint other:pr▏
+
+---
+
+Shell: bash (without colon)
+
+> csc-test-cli --endpoint other:pr▏
+
+---
+
+Shell: bash (without equals or colon)
+
+> csc-test-cli --endpoint other:pr▏
+
+---
+
+Shell: bash (with comma)
+
+> csc-test-cli --endpoint other:pr▏

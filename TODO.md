@@ -63,7 +63,10 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
 - [ ] Evaluate improvements to native editing behavior captured by the snapshots:
       Bash duplicates existing suffixes by default, and Zsh can insert a space
       inside an existing closing quote. Preserve shell settings when improving these.
-- [ ] Expand Bash word-break tests for `=`, `:`, assignment boundaries, and custom
+- [ ] Investigate whether Bash 3.2 can avoid appending a space after a directory
+      when word-break prefix trimming prevents Readline from recognizing its path,
+      without changing global Readline settings or completion registrations.
+- [x] Expand Bash word-break tests for `=`, `:`, assignment boundaries, and custom
       `COMP_WORDBREAKS`; establish which configurations are supported.
 - [ ] Expand path coverage: relative/absolute paths, `~/`, hidden files, symlinks,
       directories, attached option values, Unicode, and metacharacters.

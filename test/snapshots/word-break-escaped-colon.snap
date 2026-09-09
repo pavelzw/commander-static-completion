@@ -1,0 +1,59 @@
+Input: csc-test-cli --endpoint api\:pr<TAB>
+
+Shell: bash (3.2; default)
+
+> csc-test-cli --endpoint api\:production ▏
+
+---
+
+Shell: bash (3.2; with comma)
+
+> csc-test-cli --endpoint api\:production ▏
+
+---
+
+Shell: bash (3.2; without colon)
+
+> csc-test-cli --endpoint api:production ▏
+
+---
+
+Shell: bash (3.2; without equals or colon)
+
+> csc-test-cli --endpoint api:production ▏
+
+---
+
+Shell: bash (3.2; without equals)
+
+> csc-test-cli --endpoint api\:production ▏
+
+---
+
+Shell: bash (4+; default)
+
+> csc-test-cli --endpoint api:production ▏
+
+---
+
+Shell: bash (4+; with comma)
+
+> csc-test-cli --endpoint api:production ▏
+
+---
+
+Shell: bash (4+; without colon)
+
+> csc-test-cli --endpoint api:production ▏
+
+---
+
+Shell: bash (4+; without equals or colon)
+
+> csc-test-cli --endpoint api:production ▏
+
+---
+
+Shell: bash (4+; without equals)
+
+> csc-test-cli --endpoint api:production ▏
