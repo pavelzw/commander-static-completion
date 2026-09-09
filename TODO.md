@@ -18,7 +18,7 @@ behavior, and optional extensions. Investigations are not confirmed bugs.
   all three generators, and TypeScript consumption through package exports.
   Confirm declaration/source maps resolve to the packaged TypeScript source.
 - [x] Add Oxlint for library source, tooling, tests, and examples; fail CI on warnings.
-- [ ] Add a formatter and format the TypeScript source and test harnesses.
+- [x] Add Oxfmt and format the TypeScript source and test harnesses; check formatting in CI.
 - [ ] Add package repository, homepage, bugs, and discovery metadata; document
   installation and the supported ESM/CommonJS usage.
 - [ ] Establish a release checklist, changelog, versioning policy, and npm

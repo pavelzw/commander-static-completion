@@ -126,7 +126,12 @@ The build cleans `dist/` first, so removed modules cannot survive into the packa
 `npm pack` builds automatically. The JavaScript examples and tests use the
 compiled library.
 
+`npm run format` applies Oxfmt formatting. Generated `dist/` files are excluded,
+and automatic import sorting is disabled.
+
 `npm run validate` runs all checks in the same order as CI:
+
+- `npm run format:check`: verify formatting without changing files.
 
 - `npm run lint`: Oxlint over TypeScript, tests, tooling, and examples; warnings fail.
 - `npm run check`: strict TypeScript checks.
