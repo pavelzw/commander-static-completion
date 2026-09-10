@@ -511,6 +511,7 @@ templates live in TypeScript under `src/`.
 
 See the [changelog](CHANGELOG.md) and
 [release checklist](https://github.com/pavelzw/commander-static-completion/blob/main/docs/releasing.md).
-Pushing a `v<version>` tag starts the validation and npm-publishing workflow.
-Stable releases use `latest`; prereleases use `next`. npm trusted-publisher
-setup is required before automated publication.
+Pushing a `v<version>` tag validates and stages the package on npm. A maintainer
+reviews and approves it with 2FA before it becomes public. Stable releases use
+`latest`; prereleases use `next`. npm trusted-publisher setup is required before
+automated staging.

@@ -1,11 +1,13 @@
 # Releasing
 
-The release workflow follows [Diffle's publish workflow](https://github.com/moritzwilksch/diffle/blob/main/.github/workflows/publish.yml): pushing a `v*` tag publishes through GitHub Actions, using Node 24 and an environment named `npmjs`.
+Pushing a `v*` tag stages a release through GitHub Actions, using Node 24 and an
+environment named `npmjs`. A maintainer approves the staged package before it
+becomes public.
 
 For this library, `.github/workflows/publish.yml` first calls the full CI matrix
 on the tagged commit. Publishing also requires the tag, package version, lockfile
 metadata, and dated changelog entry to agree. `prepack` builds a clean `dist/`
-when `npm publish` prepares the package.
+when `npm stage publish` prepares the package.
 
 ## One-time setup
 
@@ -23,18 +25,18 @@ workflow with the next unpublished version.
 Create the GitHub environment `npmjs`. In the npm package's **Settings → Trusted
 publishing**, add GitHub Actions with these exact values:
 
-| Field                | Value                                |
-| -------------------- | ------------------------------------ |
-| Organization or user | `pavelzw`                            |
-| Repository           | `commander-static-completion`        |
-| Workflow filename    | `publish.yml`                        |
-| Environment          | `npmjs`                              |
-| Allowed action       | Direct publishing with `npm publish` |
+| Field                | Value                                                         |
+| -------------------- | ------------------------------------------------------------- |
+| Organization or user | `pavelzw`                                                     |
+| Repository           | `commander-static-completion`                                 |
+| Workflow filename    | `publish.yml`                                                 |
+| Environment          | `npmjs`                                                       |
+| Allowed action       | Staged publishing only; leave **Allow npm publish** unchecked |
 
 The workflow grants `id-token: write` to the publishing job. It uses npm OIDC
 trusted publishing; no `NPM_TOKEN` or `NODE_AUTH_TOKEN` secret is needed. npm
-requires Node 22.14+ and npm 11.5.1+ for this authentication; the workflow uses
-current Node 24. Public trusted-publisher releases receive provenance
+requires Node 22.14+ and npm 11.15.0+ for staged publishing; the workflow uses
+Node 24 with its bundled npm. Public trusted-publisher releases receive provenance
 automatically. See [npm's trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
 
 Creating these workflow files does not configure npm's account settings or
@@ -63,9 +65,8 @@ Use Semantic Versioning, with these pre-1.0 conventions:
    npm version 0.2.0 --no-git-tag-version
    ```
 
-   For the first publication, the current version is already `0.1.0`; retain it
-   if that is the intended initial version. Keep the initial-release bootstrap
-   separate from the automated tag workflow described above.
+   Keep the initial-release bootstrap separate from the automated tag workflow
+   described above.
 
 3. Move the relevant `CHANGELOG.md` entries from `[Unreleased]` into a dated
    section, for example `## [0.2.0] - 2026-09-10`. Keep an `[Unreleased]` section
@@ -93,10 +94,23 @@ Use Semantic Versioning, with these pre-1.0 conventions:
    git push origin v0.2.0
    ```
 
-   **Pushing this tag starts publication.** The workflow revalidates the tagged
-   commit, checks the release metadata, and publishes after validation succeeds.
+   **Pushing this tag starts staging.** The workflow revalidates the tagged
+   commit, checks the release metadata, and stages the package after validation
+   succeeds. A successful workflow means the release is awaiting approval.
 
-7. Check the Publish workflow and verify the published version and channel:
+7. After the Publish workflow succeeds, review the release in npm's **Staged
+   Packages** tab and approve it with 2FA. Alternatively, use npm 11.15.0+ locally:
+
+   ```sh
+   npm stage list commander-static-completion
+   npm stage view <stage-id>
+   npm stage approve <stage-id>
+   ```
+
+   Replace `<stage-id>` with the ID returned by the list command. Approval makes
+   the version public. See [npm's staged publishing documentation](https://docs.npmjs.com/staged-publishing/).
+
+8. Verify the published version and channel:
 
    ```sh
    npm view commander-static-completion@0.2.0 version dist.integrity
@@ -113,7 +127,8 @@ Use Semantic Versioning, with these pre-1.0 conventions:
   when the release contents change.
 - If npm rejects OIDC authentication, compare the trusted-publisher fields with
   the table above. Once corrected, rerun the failed publish job for the same tag.
-- Before retrying an interrupted publish, check whether npm already has that
-  version. If it does, confirm publication succeeded; do not attempt to overwrite
-  it. This workflow deliberately does not silently skip existing versions.
+- Before retrying an interrupted staging job, check `npm stage list
+commander-static-completion` and the published versions. If the version is
+  already staged, review and approve that stage; if published, confirm the release
+  succeeded. This workflow deliberately does not silently skip existing versions.
 - If the package was published with a defect, release a new version with the fix.

@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+## [0.0.2] - 2026-09-10
+
+### Changed
+
+- Release tags now stage packages on npm for maintainer approval before publication.
+- Document staged publishing setup and the release approval process.
+
 ## [0.0.1] - 2026-09-10
 
 ### Added

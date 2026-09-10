@@ -36,7 +36,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: npm run check:release -- "$RELEASE_TAG"
-      - name: Publish package
+      - name: Stage package for approval
         env:
           NPM_DIST_TAG: ${{ steps.release.outputs.dist-tag }}
-        run: npm publish --tag "$NPM_DIST_TAG"
+        run: npm stage publish --tag "$NPM_DIST_TAG"
