@@ -43,7 +43,7 @@
   "scripts": {
     "build": "tsx scripts/build.ts",
     "test": "npm run build && node --test --test-concurrency=1 test/*.test.js && npm run test:release",
-    "check": "tsc --noEmit",
+    "check": "npm run build && tsc --noEmit",
     "example": "npm run build --silent && node examples/cli.js",
     "prepack": "npm run build",
     "lint": "oxlint --deny-warnings src scripts test examples type-tests",
