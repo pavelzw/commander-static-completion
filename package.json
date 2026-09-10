@@ -1,6 +1,6 @@
 {
   "name": "commander-static-completion",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Generate standalone shell completions from Commander command definitions",
   "keywords": [
     "bash",
