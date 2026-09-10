@@ -1,7 +1,7 @@
 # commander-static-completion
 
 [![CI](https://img.shields.io/github/actions/workflow/status/pavelzw/commander-static-completion/ci.yml?style=flat-square&branch=main)](https://github.com/pavelzw/commander-static-completion/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/commander-static-completion?logo=npm&logoColor=white&style=flat-square)](https://www.npmjs.com/package/commander-static-completion)
+[![npm](https://img.shields.io/npm/v/commander-static-completion?logo=npm&logoColor=white&style=flat-square)](https://npmx.dev/package/commander-static-completion)
 
 Generate standalone shell completions from an existing Commander command tree.
 Node runs once during generation. Tab completion runs entirely in the shell,
